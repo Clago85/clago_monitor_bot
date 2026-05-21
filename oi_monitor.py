@@ -49,6 +49,8 @@ ASSETS = [
     {"id": "ROSE",    "binance": "ROSEUSDT",     "bybit": "ROSEUSDT",     "primary": "binance"},
     {"id": "NEAR",    "binance": "NEARUSDT",     "bybit": "NEARUSDT",     "primary": "binance"},
     {"id": "FET",     "binance": "FETUSDT",      "bybit": "FETUSDT",      "primary": "binance"},
+    {"id": "HYPE",    "binance": "HYPEUSDT",     "bybit": "HYPEUSDT",     "primary": "binance"},
+    {"id": "STRK",    "binance": "STRKUSDT",     "bybit": "STRKUSDT",     "primary": "binance"},
 ]
 
 # =========================================================
