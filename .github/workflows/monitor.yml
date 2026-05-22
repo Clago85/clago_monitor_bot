@@ -41,25 +41,13 @@ jobs:
 
       - name: Commit state & history
         run: |
-          echo "=== Working dir ==="
-          pwd
-          echo "=== File JSON nella workspace ==="
-          ls -la *.json 2>&1 || echo "(nessun file json)"
-          echo "=== Git status PRIMA dell'add ==="
-          git status --short
-          echo "=== .gitignore ==="
-          cat .gitignore 2>/dev/null || echo "(nessun .gitignore)"
-          echo "=== Configurazione git ==="
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          echo "=== git add state.json history.json ==="
-          git add state.json history.json 2>&1 || echo "(add con errore, ignorato)"
-          echo "=== Git diff --cached ==="
-          git diff --cached --stat
+          [ -f state.json ] && git add state.json
+          [ -f history.json ] && git add history.json
           if ! git diff --cached --quiet; then
             git commit -m "State $(date -u +%Y-%m-%d_%H-%M)"
             git push
-            echo "=== Commit + push completati ==="
           else
-            echo "(nessuna modifica da committare)"
+            echo "No state changes to commit"
           fi
