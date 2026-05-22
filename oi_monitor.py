@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 """
-OI Monitor — versione Python per GitHub Actions / scheduler cloud.
+OI Monitor — Coinalyze edition.
 
 Replica la logica della dashboard HTML (Bias 24h x Signal 4h -> Azione)
 e manda alert Telegram quando un asset transita verso un setup operativo.
 
+Usa l'API Coinalyze (aggregatore globale) per evitare il geo-block US
+su Binance/Bybit dei runner GitHub Actions.
+
 Variabili d'ambiente richieste:
   TELEGRAM_TOKEN     - token del bot Telegram (da @BotFather)
   TELEGRAM_CHAT_ID   - il tuo chat ID (da @userinfobot)
+  COINALYZE_API_KEY  - API key Coinalyze (https://coinalyze.net/api)
 
 File generati nella cartella corrente:
-  state.json    - ultimo stato di ogni asset (committed dal workflow)
+  state.json    - ultimo stato di ogni asset
   history.json  - log delle transizioni (ultimi 1000 eventi)
 """
 
@@ -23,34 +27,36 @@ import requests
 
 # =========================================================
 # CONFIGURAZIONE - lista asset
+# Formato simbolo Coinalyze: <BinanceSymbol>_PERP.A
+# Per asset solo su Bybit:   <BybitSymbol>_PERP.6
 # =========================================================
 ASSETS = [
-    {"id": "BTC",     "binance": "BTCUSDT",      "bybit": "BTCUSDT",      "primary": "binance"},
-    {"id": "ETH",     "binance": "ETHUSDT",      "bybit": "ETHUSDT",      "primary": "binance"},
-    {"id": "SOL",     "binance": "SOLUSDT",      "bybit": "SOLUSDT",      "primary": "binance"},
-    {"id": "LINK",    "binance": "LINKUSDT",     "bybit": "LINKUSDT",     "primary": "binance"},
-    {"id": "ICP",     "binance": "ICPUSDT",      "bybit": "ICPUSDT",      "primary": "binance"},
-    {"id": "SUI",     "binance": "SUIUSDT",      "bybit": "SUIUSDT",      "primary": "binance"},
-    {"id": "HBAR",    "binance": "HBARUSDT",     "bybit": "HBARUSDT",     "primary": "binance"},
-    {"id": "AR",      "binance": "ARUSDT",       "bybit": "ARUSDT",       "primary": "binance"},
-    {"id": "TAO",     "binance": "TAOUSDT",      "bybit": "TAOUSDT",      "primary": "binance"},
-    {"id": "RENDER",  "binance": "RENDERUSDT",   "bybit": "RENDERUSDT",   "primary": "binance"},
-    {"id": "VIRTUAL", "binance": "VIRTUALUSDT",  "bybit": "VIRTUALUSDT",  "primary": "binance"},
-    {"id": "INJ",     "binance": "INJUSDT",      "bybit": "INJUSDT",      "primary": "binance"},
-    {"id": "SEI",     "binance": "SEIUSDT",      "bybit": "SEIUSDT",      "primary": "binance"},
-    {"id": "ONDO",    "binance": "ONDOUSDT",     "bybit": "ONDOUSDT",     "primary": "binance"},
-    {"id": "ENA",     "binance": "ENAUSDT",      "bybit": "ENAUSDT",      "primary": "binance"},
-    {"id": "JUP",     "binance": "JUPUSDT",      "bybit": "JUPUSDT",      "primary": "binance"},
-    {"id": "BONK",    "binance": "1000BONKUSDT", "bybit": "1000BONKUSDT", "primary": "binance"},
-    {"id": "PENGU",   "binance": "PENGUUSDT",    "bybit": "PENGUUSDT",    "primary": "binance"},
-    {"id": "KAS",     "binance": None,           "bybit": "KASUSDT",      "primary": "bybit"},
-    {"id": "TRX",     "binance": "TRXUSDT",      "bybit": "TRXUSDT",      "primary": "binance"},
-    {"id": "TON",     "binance": "TONUSDT",      "bybit": "TONUSDT",      "primary": "binance"},
-    {"id": "ROSE",    "binance": "ROSEUSDT",     "bybit": "ROSEUSDT",     "primary": "binance"},
-    {"id": "NEAR",    "binance": "NEARUSDT",     "bybit": "NEARUSDT",     "primary": "binance"},
-    {"id": "FET",     "binance": "FETUSDT",      "bybit": "FETUSDT",      "primary": "binance"},
-    {"id": "HYPE",    "binance": "HYPEUSDT",     "bybit": "HYPEUSDT",     "primary": "binance"},
-    {"id": "STRK",    "binance": "STRKUSDT",     "bybit": "STRKUSDT",     "primary": "binance"},
+    {"id": "BTC",     "coinalyze": "BTCUSDT_PERP.A"},
+    {"id": "ETH",     "coinalyze": "ETHUSDT_PERP.A"},
+    {"id": "SOL",     "coinalyze": "SOLUSDT_PERP.A"},
+    {"id": "LINK",    "coinalyze": "LINKUSDT_PERP.A"},
+    {"id": "ICP",     "coinalyze": "ICPUSDT_PERP.A"},
+    {"id": "SUI",     "coinalyze": "SUIUSDT_PERP.A"},
+    {"id": "HBAR",    "coinalyze": "HBARUSDT_PERP.A"},
+    {"id": "AR",      "coinalyze": "ARUSDT_PERP.A"},
+    {"id": "TAO",     "coinalyze": "TAOUSDT_PERP.A"},
+    {"id": "RENDER",  "coinalyze": "RENDERUSDT_PERP.A"},
+    {"id": "VIRTUAL", "coinalyze": "VIRTUALUSDT_PERP.A"},
+    {"id": "INJ",     "coinalyze": "INJUSDT_PERP.A"},
+    {"id": "SEI",     "coinalyze": "SEIUSDT_PERP.A"},
+    {"id": "ONDO",    "coinalyze": "ONDOUSDT_PERP.A"},
+    {"id": "ENA",     "coinalyze": "ENAUSDT_PERP.A"},
+    {"id": "JUP",     "coinalyze": "JUPUSDT_PERP.A"},
+    {"id": "BONK",    "coinalyze": "1000BONKUSDT_PERP.A"},
+    {"id": "PENGU",   "coinalyze": "PENGUUSDT_PERP.A"},
+    {"id": "KAS",     "coinalyze": "KASUSDT_PERP.6"},  # solo Bybit
+    {"id": "TRX",     "coinalyze": "TRXUSDT_PERP.A"},
+    {"id": "TON",     "coinalyze": "TONUSDT_PERP.A"},
+    {"id": "ROSE",    "coinalyze": "ROSEUSDT_PERP.A"},
+    {"id": "NEAR",    "coinalyze": "NEARUSDT_PERP.A"},
+    {"id": "FET",     "coinalyze": "FETUSDT_PERP.A"},
+    {"id": "HYPE",    "coinalyze": "HYPEUSDT_PERP.A"},
+    {"id": "STRK",    "coinalyze": "STRKUSDT_PERP.A"},
 ]
 
 # =========================================================
@@ -74,137 +80,170 @@ T = {
 STATE_FILE = "state.json"
 HISTORY_FILE = "history.json"
 
+COINALYZE_BASE = "https://api.coinalyze.net/v1"
+COINALYZE_KEY = os.environ.get("COINALYZE_API_KEY", "").strip()
+
 TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "").strip()
 TG_CHAT  = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
-HTTP_TIMEOUT = 15
+HTTP_TIMEOUT = 25
 
 # =========================================================
-# FETCHERS
+# COINALYZE FETCHER (batch unico per tutti gli asset)
 # =========================================================
 
-def http_get_json(url):
-    r = requests.get(url, timeout=HTTP_TIMEOUT)
-    r.raise_for_status()
+def coinalyze_get(path, params):
+    url = f"{COINALYZE_BASE}{path}"
+    headers = {"api_key": COINALYZE_KEY}
+    r = requests.get(url, params=params, headers=headers, timeout=HTTP_TIMEOUT)
+    if r.status_code != 200:
+        raise Exception(f"Coinalyze {path} HTTP {r.status_code}: {r.text[:300]}")
     return r.json()
 
 
-def fetch_binance(asset):
-    sym = asset["binance"]
-    oi_now  = http_get_json(f"https://fapi.binance.com/fapi/v1/openInterest?symbol={sym}")
-    oi_hist = http_get_json(f"https://fapi.binance.com/futures/data/openInterestHist?symbol={sym}&period=1h&limit=25")
-    ticker  = http_get_json(f"https://fapi.binance.com/fapi/v1/ticker/24hr?symbol={sym}")
-    premium = http_get_json(f"https://fapi.binance.com/fapi/v1/premiumIndex?symbol={sym}")
-    klines  = http_get_json(f"https://fapi.binance.com/fapi/v1/klines?symbol={sym}&interval=1h&limit=5")
-
-    if isinstance(oi_now, dict) and oi_now.get("code"):
-        raise Exception(f"Binance OI error: {oi_now.get('msg')}")
-
-    current_oi = float(oi_now["openInterest"])
-    last_price = float(premium["markPrice"])
-
-    oi_24h_ago = oi_4h_ago = None
-    if isinstance(oi_hist, list) and oi_hist:
-        sorted_hist = sorted(oi_hist, key=lambda x: x["timestamp"])
-        oi_24h_ago = float(sorted_hist[0]["sumOpenInterest"])
-        four_idx = max(0, len(sorted_hist) - 5)
-        oi_4h_ago = float(sorted_hist[four_idx]["sumOpenInterest"])
-
-    oi_change_24h = ((current_oi - oi_24h_ago) / oi_24h_ago) * 100 if oi_24h_ago else None
-    oi_change_4h  = ((current_oi - oi_4h_ago)  / oi_4h_ago) * 100 if oi_4h_ago else None
-
-    price_change_4h = None
-    if isinstance(klines, list) and len(klines) >= 1:
-        try:
-            p4 = float(klines[0][1])
-            if p4 > 0:
-                price_change_4h = ((last_price - p4) / p4) * 100
-        except Exception:
-            pass
-
-    return {
-        "source": "Binance",
-        "source_symbol": sym,
-        "price": last_price,
-        "priceChange24h": float(ticker["priceChangePercent"]),
-        "priceChange4h": price_change_4h,
-        "fundingRate": float(premium["lastFundingRate"]) * 100,
-        "currentOI": current_oi,
-        "currentOI_USD": current_oi * last_price,
-        "oiChange24h": oi_change_24h,
-        "oiChange4h": oi_change_4h,
-    }
+def _extract_history(item):
+    if isinstance(item, dict):
+        if "history" in item and isinstance(item["history"], list):
+            return item["history"]
+        if "data" in item and isinstance(item["data"], list):
+            return item["data"]
+    return []
 
 
-def fetch_bybit(asset):
-    sym = asset.get("bybit")
-    if not sym:
-        raise Exception("Nessun simbolo Bybit configurato")
+def _symbol_of(item):
+    if isinstance(item, dict):
+        return item.get("symbol") or item.get("s") or item.get("sym")
+    return None
 
-    oi_hist = http_get_json(
-        f"https://api.bybit.com/v5/market/open-interest?category=linear&symbol={sym}&intervalTime=1h&limit=25"
+
+def fetch_all_via_coinalyze():
+    if not COINALYZE_KEY:
+        raise Exception("COINALYZE_API_KEY non configurato nei secrets")
+
+    all_symbols = ",".join(a["coinalyze"] for a in ASSETS)
+    now = int(time.time())
+    from_ts = now - 30 * 3600
+
+    print(f"[INFO] Coinalyze batch fetch · {len(ASSETS)} simboli · window=30h", flush=True)
+
+    oi_resp = coinalyze_get(
+        "/open-interest-history",
+        {
+            "symbols": all_symbols,
+            "interval": "1hour",
+            "from": from_ts,
+            "to": now,
+            "convert_to_usd": "false",
+        },
     )
-    ticker  = http_get_json(f"https://api.bybit.com/v5/market/tickers?category=linear&symbol={sym}")
-    klines  = http_get_json(f"https://api.bybit.com/v5/market/kline?category=linear&symbol={sym}&interval=60&limit=5")
 
-    if not oi_hist.get("result") or not oi_hist["result"].get("list"):
-        raise Exception("Bybit OI list vuota")
-    lst = oi_hist["result"]["list"]
-    sorted_lst = sorted(lst, key=lambda x: int(x["timestamp"]), reverse=True)
-    current_oi  = float(sorted_lst[0]["openInterest"])
-    oi_24h_ago  = float(sorted_lst[-1]["openInterest"])
-    four_idx    = min(len(sorted_lst) - 1, 4)
-    oi_4h_ago   = float(sorted_lst[four_idx]["openInterest"])
+    px_resp = coinalyze_get(
+        "/ohlcv-history",
+        {
+            "symbols": all_symbols,
+            "interval": "1hour",
+            "from": from_ts,
+            "to": now,
+        },
+    )
 
-    oi_change_24h = ((current_oi - oi_24h_ago) / oi_24h_ago) * 100 if oi_24h_ago else None
-    oi_change_4h  = ((current_oi - oi_4h_ago)  / oi_4h_ago) * 100 if oi_4h_ago else None
-
-    t = ticker["result"]["list"][0]
-    last_price = float(t["lastPrice"])
-
-    price_change_4h = None
-    if klines.get("result") and klines["result"].get("list"):
-        k_sorted = sorted(klines["result"]["list"], key=lambda x: int(x[0]))
-        try:
-            p4 = float(k_sorted[0][1])
-            if p4 > 0:
-                price_change_4h = ((last_price - p4) / p4) * 100
-        except Exception:
-            pass
-
-    return {
-        "source": "Bybit",
-        "source_symbol": sym,
-        "price": last_price,
-        "priceChange24h": float(t["price24hPcnt"]) * 100,
-        "priceChange4h": price_change_4h,
-        "fundingRate": float(t["fundingRate"]) * 100,
-        "currentOI": current_oi,
-        "currentOI_USD": current_oi * last_price,
-        "oiChange24h": oi_change_24h,
-        "oiChange4h": oi_change_4h,
-    }
-
-
-def fetch_asset(asset):
-    primary = asset["primary"]
     try:
-        if primary == "binance" and asset.get("binance"):
-            return fetch_binance(asset)
-        if asset.get("bybit"):
-            return fetch_bybit(asset)
-        raise Exception("Nessuna source configurata")
+        fr_resp = coinalyze_get("/funding-rate", {"symbols": all_symbols})
     except Exception as e:
-        if primary == "binance" and asset.get("bybit"):
+        print(f"[WARN] funding-rate fallito ({e}) — provo predicted-funding-rate", flush=True)
+        try:
+            fr_resp = coinalyze_get("/predicted-funding-rate", {"symbols": all_symbols})
+        except Exception as e2:
+            print(f"[WARN] anche predicted fallito ({e2}) — funding=0 per tutti", flush=True)
+            fr_resp = []
+
+    oi_by_sym = {}
+    if isinstance(oi_resp, list):
+        for item in oi_resp:
+            sym = _symbol_of(item)
+            if sym:
+                oi_by_sym[sym] = _extract_history(item)
+
+    px_by_sym = {}
+    if isinstance(px_resp, list):
+        for item in px_resp:
+            sym = _symbol_of(item)
+            if sym:
+                px_by_sym[sym] = _extract_history(item)
+
+    fr_by_sym = {}
+    if isinstance(fr_resp, list):
+        for item in fr_resp:
+            sym = _symbol_of(item)
+            if not sym:
+                continue
+            val = item.get("value")
+            if val is None:
+                val = item.get("funding_rate")
+            if val is None:
+                val = item.get("rate")
             try:
-                return fetch_bybit(asset)
-            except Exception as e2:
-                return {"error": f"{e} / {e2}"}
-        return {"error": str(e)}
+                fr_by_sym[sym] = float(val) if val is not None else 0.0
+            except (TypeError, ValueError):
+                fr_by_sym[sym] = 0.0
+
+    result = {}
+
+    for asset in ASSETS:
+        sym = asset["coinalyze"]
+        aid = asset["id"]
+
+        oi_hist = oi_by_sym.get(sym, [])
+        px_hist = px_by_sym.get(sym, [])
+
+        if not oi_hist or not px_hist:
+            result[aid] = {"error": f"dati assenti su Coinalyze (sym={sym})"}
+            continue
+
+        try:
+            oi_sorted = sorted(oi_hist, key=lambda x: x.get("t", x.get("time", 0)))
+            px_sorted = sorted(px_hist, key=lambda x: x.get("t", x.get("time", 0)))
+
+            def _close(c):
+                return float(c.get("c", c.get("close", 0)))
+
+            current_oi  = _close(oi_sorted[-1])
+            oi_24h_ago  = _close(oi_sorted[0])
+            oi_4h_idx   = max(0, len(oi_sorted) - 5)
+            oi_4h_ago   = _close(oi_sorted[oi_4h_idx])
+
+            current_price = _close(px_sorted[-1])
+            price_24h_ago = _close(px_sorted[0])
+            px_4h_idx     = max(0, len(px_sorted) - 5)
+            price_4h_ago  = _close(px_sorted[px_4h_idx])
+
+            oi_change_24h    = ((current_oi - oi_24h_ago) / oi_24h_ago) * 100 if oi_24h_ago else None
+            oi_change_4h     = ((current_oi - oi_4h_ago)  / oi_4h_ago)  * 100 if oi_4h_ago  else None
+            price_change_24h = ((current_price - price_24h_ago) / price_24h_ago) * 100 if price_24h_ago else None
+            price_change_4h  = ((current_price - price_4h_ago)  / price_4h_ago)  * 100 if price_4h_ago  else None
+
+            funding_rate = fr_by_sym.get(sym, 0.0) * 100
+
+            result[aid] = {
+                "source": "Coinalyze",
+                "source_symbol": sym,
+                "price": current_price,
+                "priceChange24h": price_change_24h,
+                "priceChange4h": price_change_4h,
+                "fundingRate": funding_rate,
+                "currentOI": current_oi,
+                "currentOI_USD": current_oi * current_price,
+                "oiChange24h": oi_change_24h,
+                "oiChange4h": oi_change_4h,
+            }
+        except Exception as e:
+            result[aid] = {"error": f"parse error: {e}"}
+
+    return result
 
 
 # =========================================================
-# BIAS / SIGNAL / ACTION - identici alla dashboard JS
+# BIAS / SIGNAL / ACTION
 # =========================================================
 
 def compute_bias(d):
@@ -241,7 +280,7 @@ def compute_bias(d):
 
 
 def compute_signal_4h(d):
-    oi4  = d.get("oiChange4h")   or 0
+    oi4  = d.get("oiChange4h")    or 0
     px4  = d.get("priceChange4h") or 0
     oi24 = d.get("oiChange24h")   or 0
     px24 = d.get("priceChange24h") or 0
@@ -294,7 +333,7 @@ def compute_action(bias, signal_4h):
 
 
 # =========================================================
-# LOGICA TRANSIZIONI E TELEGRAM
+# TRANSIZIONI E TELEGRAM
 # =========================================================
 
 def should_notify(prev_label, curr_label):
@@ -328,6 +367,13 @@ def fmt_pct(p, sig=2):
     return f"{s}{p:.{sig}f}%"
 
 
+def _binance_symbol(coinalyze_sym):
+    if not coinalyze_sym:
+        return None
+    base = coinalyze_sym.split(".")[0]
+    return base.replace("_PERP", "")
+
+
 def format_transition_message(t):
     asset = t["asset"]
     curr  = t["to"]
@@ -339,9 +385,10 @@ def format_transition_message(t):
 
     d = t["data"]
     sym = d.get("source_symbol", asset)
-    src = d.get("source", "?")
-    tv_exchange = "BINANCE" if src == "Binance" else "BYBIT"
-    tv_link = f"https://www.tradingview.com/chart/?symbol={tv_exchange}:{sym}.P"
+    is_bybit = sym.endswith(".6")
+    tv_exchange = "BYBIT" if is_bybit else "BINANCE"
+    base_sym = _binance_symbol(sym) or asset
+    tv_link = f"https://www.tradingview.com/chart/?symbol={tv_exchange}:{base_sym}.P"
 
     return (
         f"{emoji} <b>{curr_a} {strength_text}</b> · <b>{asset}</b>\n\n"
@@ -362,7 +409,7 @@ def format_transition_message(t):
 
 def send_telegram(text):
     if not TG_TOKEN or not TG_CHAT:
-        print("[WARN] Telegram non configurato (mancano TELEGRAM_TOKEN o TELEGRAM_CHAT_ID)", flush=True)
+        print("[WARN] Telegram non configurato", flush=True)
         return False
     url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
     try:
@@ -421,15 +468,27 @@ def main():
     transitions = []
     errors = []
 
+    try:
+        all_data = fetch_all_via_coinalyze()
+    except Exception as e:
+        print(f"[FATAL] Coinalyze fetch fallito: {e}", flush=True)
+        send_telegram(
+            f"⚠️ <b>OI Monitor errore</b>\n\n"
+            f"Coinalyze fetch fallito:\n<code>{str(e)[:300]}</code>\n\n"
+            f"Verifica COINALYZE_API_KEY nei Secrets e i log del run."
+        )
+        return
+
     for asset in ASSETS:
         asset_id = asset["id"]
-        try:
-            data = fetch_asset(asset)
-            if data.get("error"):
-                errors.append(f"{asset_id}: {data['error']}")
-                print(f"  [X] {asset_id}: {data['error']}", flush=True)
-                continue
+        data = all_data.get(asset_id, {"error": "no data"})
 
+        if data.get("error"):
+            errors.append(f"{asset_id}: {data['error']}")
+            print(f"  [X] {asset_id}: {data['error']}", flush=True)
+            continue
+
+        try:
             bias    = compute_bias(data)
             signal  = compute_signal_4h(data)
             action, strength = compute_action(bias, signal)
@@ -439,10 +498,7 @@ def main():
             prev_label = prev_entry.get("label")
 
             transition_logged = False
-            # Caso 1: asset con storia, transizione significativa
             is_transition = prev_label and should_notify(prev_label, curr_label)
-            # Caso 2: asset nuovo (appena aggiunto agli ASSETS) che entra direttamente in LONG/SHORT
-            # — non vale al primo run del bot (lì si manda il riepilogo di startup)
             is_new_active = (not prev_label) and (not is_first_run) and action in ("LONG", "SHORT")
 
             if is_transition or is_new_active:
@@ -493,13 +549,10 @@ def main():
             errors.append(f"{asset_id}: {e}")
             print(f"  [X] {asset_id}: exception {e}", flush=True)
 
-        time.sleep(0.25)
-
     save_json(STATE_FILE, new_state)
 
     if is_first_run:
         print(f"\n[INFO] First run: invio messaggio di startup con setup attivi", flush=True)
-        # Lista i setup già attivi al lancio
         active_long = []
         active_short = []
         for aid, s in new_state.items():
@@ -521,8 +574,8 @@ def main():
 
         startup_msg = (
             f"🤖 <b>OI Monitor avviato</b>\n\n"
-            f"Sto monitorando {len(ASSETS)} asset.\n"
-            f"Stato iniziale salvato. Riceverai alert quando un asset:\n"
+            f"Sto monitorando {len(ASSETS)} asset via <b>Coinalyze</b>.\n"
+            f"Riceverai alert quando un asset:\n"
             f"• transita da NEUTRAL a LONG/SHORT\n"
             f"• flippa direzione (LONG↔SHORT)\n"
             f"• upgrade a forte (moderato→forte)"
