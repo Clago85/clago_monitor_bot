@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OI Monitor — Coinalyze edition (con retry su rate-limit).
+OI Monitor — Coinalyze edition con batch piccoli per evitare rate-limit.
 """
 
 import os
@@ -68,6 +68,10 @@ TG_CHAT  = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
 HTTP_TIMEOUT = 25
 
+BATCH_SIZE = 7
+SLEEP_BETWEEN = 6
+SLEEP_BETWEEN_BATCHES = 8
+
 
 def coinalyze_get(path, params, max_retries=5):
     url = f"{COINALYZE_BASE}{path}"
@@ -104,77 +108,74 @@ def _symbol_of(item):
     return None
 
 
+def _chunks(lst, n):
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+
 def fetch_all_via_coinalyze():
     if not COINALYZE_KEY:
         raise Exception("COINALYZE_API_KEY non configurato nei secrets")
 
-    all_symbols = ",".join(a["coinalyze"] for a in ASSETS)
     now = int(time.time())
     from_ts = now - 30 * 3600
 
-    print(f"[INFO] Coinalyze batch fetch · {len(ASSETS)} simboli · window=30h", flush=True)
-
-    oi_resp = coinalyze_get(
-        "/open-interest-history",
-        {
-            "symbols": all_symbols,
-            "interval": "1hour",
-            "from": from_ts,
-            "to": now,
-            "convert_to_usd": "false",
-        },
-    )
-    time.sleep(3)
-
-    px_resp = coinalyze_get(
-        "/ohlcv-history",
-        {
-            "symbols": all_symbols,
-            "interval": "1hour",
-            "from": from_ts,
-            "to": now,
-        },
-    )
-    time.sleep(3)
-
-    try:
-        fr_resp = coinalyze_get("/funding-rate", {"symbols": all_symbols})
-    except Exception as e:
-        print(f"[WARN] funding-rate fallito ({e}) — provo predicted-funding-rate", flush=True)
-        time.sleep(3)
-        try:
-            fr_resp = coinalyze_get("/predicted-funding-rate", {"symbols": all_symbols})
-        except Exception as e2:
-            print(f"[WARN] anche predicted fallito ({e2}) — funding=0", flush=True)
-            fr_resp = []
-
     oi_by_sym = {}
-    if isinstance(oi_resp, list):
-        for item in oi_resp:
-            sym = _symbol_of(item)
-            if sym:
-                oi_by_sym[sym] = _extract_history(item)
-
     px_by_sym = {}
-    if isinstance(px_resp, list):
-        for item in px_resp:
-            sym = _symbol_of(item)
-            if sym:
-                px_by_sym[sym] = _extract_history(item)
-
     fr_by_sym = {}
-    if isinstance(fr_resp, list):
-        for item in fr_resp:
-            sym = _symbol_of(item)
-            if not sym:
-                continue
-            val = item.get("value")
-            if val is None: val = item.get("funding_rate")
-            if val is None: val = item.get("rate")
-            try:
-                fr_by_sym[sym] = float(val) if val is not None else 0.0
-            except (TypeError, ValueError):
-                fr_by_sym[sym] = 0.0
+
+    all_assets = list(ASSETS)
+    batches = list(_chunks(all_assets, BATCH_SIZE))
+    print(f"[INFO] Coinalyze fetch · {len(all_assets)} simboli in {len(batches)} batch da {BATCH_SIZE}", flush=True)
+
+    for batch_idx, batch in enumerate(batches, 1):
+        sym_csv = ",".join(a["coinalyze"] for a in batch)
+        print(f"  [batch {batch_idx}/{len(batches)}] {sym_csv}", flush=True)
+
+        oi_resp = coinalyze_get(
+            "/open-interest-history",
+            {"symbols": sym_csv, "interval": "1hour",
+             "from": from_ts, "to": now, "convert_to_usd": "false"},
+        )
+        if isinstance(oi_resp, list):
+            for item in oi_resp:
+                sym = _symbol_of(item)
+                if sym:
+                    oi_by_sym[sym] = _extract_history(item)
+        time.sleep(SLEEP_BETWEEN)
+
+        px_resp = coinalyze_get(
+            "/ohlcv-history",
+            {"symbols": sym_csv, "interval": "1hour",
+             "from": from_ts, "to": now},
+        )
+        if isinstance(px_resp, list):
+            for item in px_resp:
+                sym = _symbol_of(item)
+                if sym:
+                    px_by_sym[sym] = _extract_history(item)
+        time.sleep(SLEEP_BETWEEN)
+
+        try:
+            fr_resp = coinalyze_get("/funding-rate", {"symbols": sym_csv})
+        except Exception as e:
+            print(f"  [WARN] funding-rate batch {batch_idx} fallito: {e}", flush=True)
+            fr_resp = []
+        if isinstance(fr_resp, list):
+            for item in fr_resp:
+                sym = _symbol_of(item)
+                if not sym:
+                    continue
+                val = item.get("value")
+                if val is None: val = item.get("funding_rate")
+                if val is None: val = item.get("rate")
+                try:
+                    fr_by_sym[sym] = float(val) if val is not None else 0.0
+                except (TypeError, ValueError):
+                    fr_by_sym[sym] = 0.0
+
+        if batch_idx < len(batches):
+            time.sleep(SLEEP_BETWEEN_BATCHES)
 
     result = {}
     for asset in ASSETS:
