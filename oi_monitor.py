@@ -439,11 +439,18 @@ def main():
             prev_label = prev_entry.get("label")
 
             transition_logged = False
-            if prev_label and should_notify(prev_label, curr_label):
+            # Caso 1: asset con storia, transizione significativa
+            is_transition = prev_label and should_notify(prev_label, curr_label)
+            # Caso 2: asset nuovo (appena aggiunto agli ASSETS) che entra direttamente in LONG/SHORT
+            # — non vale al primo run del bot (lì si manda il riepilogo di startup)
+            is_new_active = (not prev_label) and (not is_first_run) and action in ("LONG", "SHORT")
+
+            if is_transition or is_new_active:
+                from_label = prev_label if is_transition else "NEW"
                 transition = {
                     "ts": int(time.time()),
                     "asset": asset_id,
-                    "from": prev_label,
+                    "from": from_label,
                     "to": curr_label,
                     "bias": bias,
                     "signal": signal,
@@ -453,7 +460,7 @@ def main():
                 append_history({
                     "ts": int(time.time()),
                     "asset": asset_id,
-                    "from": prev_label,
+                    "from": from_label,
                     "to": curr_label,
                     "bias": bias,
                     "signal": signal,
@@ -491,14 +498,35 @@ def main():
     save_json(STATE_FILE, new_state)
 
     if is_first_run:
-        print(f"\n[INFO] First run: invio messaggio di startup", flush=True)
+        print(f"\n[INFO] First run: invio messaggio di startup con setup attivi", flush=True)
+        # Lista i setup già attivi al lancio
+        active_long = []
+        active_short = []
+        for aid, s in new_state.items():
+            label = s.get("label", "")
+            if label.startswith("LONG"):
+                strength = label.split("_")[1] if "_" in label else ""
+                active_long.append(f"  🟢 <b>{aid}</b> ({strength})")
+            elif label.startswith("SHORT"):
+                strength = label.split("_")[1] if "_" in label else ""
+                active_short.append(f"  🔴 <b>{aid}</b> ({strength})")
+
+        active_block = ""
+        if active_long:
+            active_block += "\n\n<b>📈 Setup LONG attivi:</b>\n" + "\n".join(active_long)
+        if active_short:
+            active_block += "\n\n<b>📉 Setup SHORT attivi:</b>\n" + "\n".join(active_short)
+        if not active_long and not active_short:
+            active_block = "\n\nNessun setup operativo attivo al momento."
+
         startup_msg = (
             f"🤖 <b>OI Monitor avviato</b>\n\n"
             f"Sto monitorando {len(ASSETS)} asset.\n"
-            f"Stato iniziale salvato. Ricevi alert quando un asset:\n"
+            f"Stato iniziale salvato. Riceverai alert quando un asset:\n"
             f"• transita da NEUTRAL a LONG/SHORT\n"
             f"• flippa direzione (LONG↔SHORT)\n"
-            f"• upgrade a forte (moderato→forte)\n\n"
+            f"• upgrade a forte (moderato→forte)"
+            f"{active_block}\n\n"
             f"⏰ {datetime.now(timezone.utc).strftime('%H:%M UTC · %d/%m/%Y')}"
         )
         send_telegram(startup_msg)
