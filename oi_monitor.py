@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OI Monitor — Coinalyze edition con L/S Top Traders + ora italiana + altre posizioni.
+OI Monitor — Coinalyze edition con L/S Top Traders batched + KAS Bybit.
 """
 
 import os
@@ -41,7 +41,7 @@ ASSETS = [
     {"id": "JUP",     "coinalyze": "JUPUSDT_PERP.A"},
     {"id": "BONK",    "coinalyze": "1000BONKUSDT_PERP.A"},
     {"id": "PENGU",   "coinalyze": "PENGUUSDT_PERP.A"},
-    {"id": "KAS",     "coinalyze": "KASUSDT.6"},  # Bybit linear
+    {"id": "KAS",     "coinalyze": "KASUSDT.6"},
     {"id": "TRX",     "coinalyze": "TRXUSDT_PERP.A"},
     {"id": "TON",     "coinalyze": "TONUSDT_PERP.A"},
     {"id": "ROSE",    "coinalyze": "ROSEUSDT_PERP.A"},
@@ -135,6 +135,7 @@ def fetch_all_via_coinalyze():
     all_assets = list(ASSETS)
     all_symbols_csv = ",".join(a["coinalyze"] for a in all_assets)
 
+    # === FUNDING RATE (1 sola chiamata snapshot) ===
     print(f"[INFO] Coinalyze funding-rate snapshot ({len(all_assets)} simboli)", flush=True)
     try:
         fr_resp = coinalyze_get("/funding-rate", {"symbols": all_symbols_csv})
@@ -155,34 +156,41 @@ def fetch_all_via_coinalyze():
 
     time.sleep(SLEEP_BETWEEN_BATCHES)
 
-    # === LONG/SHORT RATIO TOP TRADERS ===
+    # === LONG/SHORT RATIO TOP TRADERS (batched) ===
     lsr_by_sym = {}
-    print(f"[INFO] Coinalyze long/short ratio top traders", flush=True)
-    try:
-        lsr_resp = coinalyze_get(
-            "/long-short-ratio-history",
-            {"symbols": all_symbols_csv, "interval": "4hour",
-             "from": now - 8 * 3600, "to": now},
-        )
-        if isinstance(lsr_resp, list):
-            for item in lsr_resp:
-                sym = _symbol_of(item)
-                if not sym:
-                    continue
-                hist = _extract_history(item)
-                if hist:
-                    last = max(hist, key=lambda x: x.get("t", 0))
-                    ratio_global = last.get("r") or last.get("ratio")
-                    ratio_top = last.get("tr") or last.get("top_trader_ratio")
-                    lsr_by_sym[sym] = {
-                        "global": float(ratio_global) if ratio_global is not None else None,
-                        "top": float(ratio_top) if ratio_top is not None else None,
-                    }
-    except Exception as e:
-        print(f"[WARN] long-short-ratio fallito: {e}", flush=True)
+    lsr_batches = list(_chunks(all_assets, BATCH_SIZE))
+    print(f"[INFO] Coinalyze long/short ratio top traders · {len(lsr_batches)} batch", flush=True)
+
+    for batch_idx, batch in enumerate(lsr_batches, 1):
+        sym_csv = ",".join(a["coinalyze"] for a in batch)
+        try:
+            lsr_resp = coinalyze_get(
+                "/long-short-ratio-history",
+                {"symbols": sym_csv, "interval": "4hour",
+                 "from": now - 8 * 3600, "to": now},
+            )
+            if isinstance(lsr_resp, list):
+                for item in lsr_resp:
+                    sym = _symbol_of(item)
+                    if not sym:
+                        continue
+                    hist = _extract_history(item)
+                    if hist:
+                        last = max(hist, key=lambda x: x.get("t", 0))
+                        ratio_global = last.get("r") or last.get("ratio")
+                        ratio_top = last.get("tr") or last.get("top_trader_ratio")
+                        lsr_by_sym[sym] = {
+                            "global": float(ratio_global) if ratio_global is not None else None,
+                            "top": float(ratio_top) if ratio_top is not None else None,
+                        }
+        except Exception as e:
+            print(f"  [WARN] L/S batch {batch_idx} fallito: {e}", flush=True)
+        if batch_idx < len(lsr_batches):
+            time.sleep(SLEEP_BETWEEN)
 
     time.sleep(SLEEP_BETWEEN_BATCHES)
 
+    # === HISTORY (OI + OHLCV) batched ===
     batches = list(_chunks(all_assets, BATCH_SIZE))
     print(f"[INFO] Coinalyze history fetch · {len(all_assets)} simboli in {len(batches)} batch da {BATCH_SIZE}", flush=True)
 
