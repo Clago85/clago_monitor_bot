@@ -1,14 +1,26 @@
 #!/usr/bin/env python3
 """
-OI Monitor — Coinalyze edition (rate-limit safe, OI 24h corretto).
+OI Monitor — Coinalyze edition con ora italiana e altre posizioni.
 """
 
 import os
 import json
 import time
 from datetime import datetime, timezone
+try:
+    from zoneinfo import ZoneInfo
+    ITALY_TZ = ZoneInfo("Europe/Rome")
+except Exception:
+    ITALY_TZ = None
 
 import requests
+
+
+def now_italy_str():
+    if ITALY_TZ is not None:
+        return datetime.now(ITALY_TZ).strftime("%H:%M · %d/%m/%Y")
+    return datetime.now(timezone.utc).strftime("%H:%M UTC · %d/%m/%Y")
+
 
 ASSETS = [
     {"id": "BTC",     "coinalyze": "BTCUSDT_PERP.A"},
@@ -64,7 +76,6 @@ TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "").strip()
 TG_CHAT  = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
 HTTP_TIMEOUT = 25
-
 BATCH_SIZE = 7
 SLEEP_BETWEEN = 6
 SLEEP_BETWEEN_BATCHES = 8
@@ -115,7 +126,6 @@ def fetch_all_via_coinalyze():
         raise Exception("COINALYZE_API_KEY non configurato nei secrets")
 
     now = int(time.time())
-    # Window 25h: candle[0] close ≈ "24h fa"
     from_ts = now - 25 * 3600
 
     oi_by_sym = {}
@@ -125,7 +135,6 @@ def fetch_all_via_coinalyze():
     all_assets = list(ASSETS)
     all_symbols_csv = ",".join(a["coinalyze"] for a in all_assets)
 
-    # === FUNDING RATE (1 sola chiamata snapshot per tutti i 26 simboli) ===
     print(f"[INFO] Coinalyze funding-rate snapshot ({len(all_assets)} simboli)", flush=True)
     try:
         fr_resp = coinalyze_get("/funding-rate", {"symbols": all_symbols_csv})
@@ -146,7 +155,6 @@ def fetch_all_via_coinalyze():
 
     time.sleep(SLEEP_BETWEEN_BATCHES)
 
-    # === HISTORY (OI + OHLCV) in batch da BATCH_SIZE simboli ===
     batches = list(_chunks(all_assets, BATCH_SIZE))
     print(f"[INFO] Coinalyze history fetch · {len(all_assets)} simboli in {len(batches)} batch da {BATCH_SIZE}", flush=True)
 
@@ -180,7 +188,6 @@ def fetch_all_via_coinalyze():
         if batch_idx < len(batches):
             time.sleep(SLEEP_BETWEEN_BATCHES)
 
-    # === Costruzione risultato per asset ===
     result = {}
     for asset in ASSETS:
         sym = asset["coinalyze"]
@@ -199,7 +206,6 @@ def fetch_all_via_coinalyze():
             def _close(c):
                 return float(c.get("c", c.get("close", 0)))
 
-            # Con window 25h: candle[0] close ≈ 24h fa, candle[-1] close ≈ ora
             current_oi  = _close(oi_sorted[-1])
             oi_24h_ago  = _close(oi_sorted[0])
             oi_4h_idx   = max(0, len(oi_sorted) - 5)
@@ -338,7 +344,23 @@ def _binance_symbol(coinalyze_sym):
     return coinalyze_sym.split(".")[0].replace("_PERP", "")
 
 
-def format_transition_message(t):
+def _build_other_active(state, exclude_asset):
+    longs = []
+    shorts = []
+    for aid, s in state.items():
+        if aid == exclude_asset:
+            continue
+        label = s.get("label", "")
+        if label.startswith("LONG"):
+            strength = label.split("_")[1] if "_" in label else ""
+            longs.append((aid, strength))
+        elif label.startswith("SHORT"):
+            strength = label.split("_")[1] if "_" in label else ""
+            shorts.append((aid, strength))
+    return longs, shorts
+
+
+def format_transition_message(t, other_active_state=None):
     asset = t["asset"]
     curr  = t["to"]
     prev  = t["from"]
@@ -350,8 +372,10 @@ def format_transition_message(t):
     tv_exchange = "BYBIT" if sym.endswith(".6") else "BINANCE"
     base_sym = _binance_symbol(sym) or asset
     tv_link = f"https://www.tradingview.com/chart/?symbol={tv_exchange}:{base_sym}.P"
-    return (
-        f"{emoji} <b>{curr_a} {strength_text}</b> · <b>{asset}</b>\n\n"
+
+    msg = (
+        f"{emoji} <b>{curr_a} {strength_text}</b> · <b>{asset}</b>\n"
+        f"🕐 <b>Rilevato:</b> {now_italy_str()}\n\n"
         f"<b>Prezzo:</b> {fmt_price(d['price'])}\n"
         f"  Δ 4h:  {fmt_pct(d.get('priceChange4h'))}\n"
         f"  Δ 24h: {fmt_pct(d.get('priceChange24h'))}\n\n"
@@ -362,9 +386,24 @@ def format_transition_message(t):
         f"<b>Bias 24h:</b> {t['bias']}\n"
         f"<b>Signal 4h:</b> {t['signal']}\n"
         f"<b>Transizione:</b> {prev} → {curr}\n\n"
-        f"🔍 <a href=\"{tv_link}\">TradingView</a>\n"
-        f"⏰ {datetime.now(timezone.utc).strftime('%H:%M UTC · %d/%m/%Y')}"
+        f"🔍 <a href=\"{tv_link}\">TradingView</a>"
     )
+
+    if other_active_state is not None:
+        longs, shorts = _build_other_active(other_active_state, asset)
+        if longs or shorts:
+            strength_short = {"strong": "F", "moderate": "M", "weak": "D"}
+            msg += "\n\n<b>📊 Altre posizioni attive:</b>"
+            if longs:
+                items = [f"{aid} ({strength_short.get(s, s)})" for aid, s in longs]
+                msg += "\n  🟢 LONG: " + ", ".join(items)
+            if shorts:
+                items = [f"{aid} ({strength_short.get(s, s)})" for aid, s in shorts]
+                msg += "\n  🔴 SHORT: " + ", ".join(items)
+        else:
+            msg += "\n\n<i>📊 Nessun'altra posizione attiva.</i>"
+
+    return msg
 
 
 def send_telegram(text):
@@ -374,10 +413,8 @@ def send_telegram(text):
     url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
     try:
         r = requests.post(url, json={
-            "chat_id": TG_CHAT,
-            "text": text,
-            "parse_mode": "HTML",
-            "disable_web_page_preview": True,
+            "chat_id": TG_CHAT, "text": text,
+            "parse_mode": "HTML", "disable_web_page_preview": True,
         }, timeout=HTTP_TIMEOUT)
         if not r.ok:
             print(f"[ERR] Telegram {r.status_code}: {r.text[:200]}", flush=True)
@@ -423,10 +460,7 @@ def main():
         all_data = fetch_all_via_coinalyze()
     except Exception as e:
         print(f"[FATAL] Coinalyze fetch fallito: {e}", flush=True)
-        send_telegram(
-            f"⚠️ <b>OI Monitor errore</b>\n\n"
-            f"Coinalyze fetch fallito:\n<code>{str(e)[:300]}</code>"
-        )
+        send_telegram(f"⚠️ <b>OI Monitor errore</b>\n\nCoinalyze fetch fallito:\n<code>{str(e)[:300]}</code>")
         return
 
     for asset in ASSETS:
@@ -510,19 +544,19 @@ def main():
         if not active_long and not active_short:
             active_block = "\n\nNessun setup operativo attivo al momento."
         startup_msg = (
-            f"🤖 <b>OI Monitor avviato</b>\n\n"
+            f"🤖 <b>OI Monitor avviato</b>\n"
+            f"🕐 {now_italy_str()}\n\n"
             f"Sto monitorando {len(ASSETS)} asset via <b>Coinalyze</b>.\n"
             f"Riceverai alert quando un asset:\n"
             f"• transita da NEUTRAL a LONG/SHORT\n"
             f"• flippa direzione (LONG↔SHORT)\n"
             f"• upgrade a forte (moderato→forte)"
-            f"{active_block}\n\n"
-            f"⏰ {datetime.now(timezone.utc).strftime('%H:%M UTC · %d/%m/%Y')}"
+            f"{active_block}"
         )
         send_telegram(startup_msg)
     else:
         for t in transitions:
-            send_telegram(format_transition_message(t))
+            send_telegram(format_transition_message(t, other_active_state=new_state))
             time.sleep(0.5)
 
     print(f"\n=== Riepilogo ===", flush=True)
