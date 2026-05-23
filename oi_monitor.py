@@ -41,7 +41,7 @@ ASSETS = [
     {"id": "JUP",     "coinalyze": "JUPUSDT_PERP.A"},
     {"id": "BONK",    "coinalyze": "1000BONKUSDT_PERP.A"},
     {"id": "PENGU",   "coinalyze": "PENGUUSDT_PERP.A"},
-    {"id": "KAS",     "coinalyze": "KASUSDT_PERP.6"},
+    {"id": "KAS",     "coinalyze": "KASUSDT.6"},  # Bybit linear
     {"id": "TRX",     "coinalyze": "TRXUSDT_PERP.A"},
     {"id": "TON",     "coinalyze": "TONUSDT_PERP.A"},
     {"id": "ROSE",    "coinalyze": "ROSEUSDT_PERP.A"},
