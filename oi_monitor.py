@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OI Monitor — Coinalyze edition con ora italiana e altre posizioni.
+OI Monitor — Coinalyze edition con L/S Top Traders + ora italiana + altre posizioni.
 """
 
 import os
@@ -151,7 +151,35 @@ def fetch_all_via_coinalyze():
                 except (TypeError, ValueError):
                     fr_by_sym[sym] = 0.0
     except Exception as e:
-        print(f"[WARN] funding-rate globale fallito: {e} — funding=0 per tutti", flush=True)
+        print(f"[WARN] funding-rate globale fallito: {e} — funding=0", flush=True)
+
+    time.sleep(SLEEP_BETWEEN_BATCHES)
+
+    # === LONG/SHORT RATIO TOP TRADERS ===
+    lsr_by_sym = {}
+    print(f"[INFO] Coinalyze long/short ratio top traders", flush=True)
+    try:
+        lsr_resp = coinalyze_get(
+            "/long-short-ratio-history",
+            {"symbols": all_symbols_csv, "interval": "4hour",
+             "from": now - 8 * 3600, "to": now},
+        )
+        if isinstance(lsr_resp, list):
+            for item in lsr_resp:
+                sym = _symbol_of(item)
+                if not sym:
+                    continue
+                hist = _extract_history(item)
+                if hist:
+                    last = max(hist, key=lambda x: x.get("t", 0))
+                    ratio_global = last.get("r") or last.get("ratio")
+                    ratio_top = last.get("tr") or last.get("top_trader_ratio")
+                    lsr_by_sym[sym] = {
+                        "global": float(ratio_global) if ratio_global is not None else None,
+                        "top": float(ratio_top) if ratio_top is not None else None,
+                    }
+    except Exception as e:
+        print(f"[WARN] long-short-ratio fallito: {e}", flush=True)
 
     time.sleep(SLEEP_BETWEEN_BATCHES)
 
@@ -223,6 +251,11 @@ def fetch_all_via_coinalyze():
 
             funding_rate = fr_by_sym.get(sym, 0.0) * 100
 
+            lsr = lsr_by_sym.get(sym, {})
+            lsr_global = lsr.get("global")
+            lsr_top = lsr.get("top")
+            lsr_spread = (lsr_top - lsr_global) if (lsr_top is not None and lsr_global is not None) else None
+
             result[aid] = {
                 "source": "Coinalyze",
                 "source_symbol": sym,
@@ -234,6 +267,9 @@ def fetch_all_via_coinalyze():
                 "currentOI_USD": current_oi * current_price,
                 "oiChange24h": oi_change_24h,
                 "oiChange4h": oi_change_4h,
+                "lsrGlobal": lsr_global,
+                "lsrTop": lsr_top,
+                "lsrSpread": lsr_spread,
             }
         except Exception as e:
             result[aid] = {"error": f"parse error: {e}"}
@@ -373,6 +409,26 @@ def format_transition_message(t, other_active_state=None):
     base_sym = _binance_symbol(sym) or asset
     tv_link = f"https://www.tradingview.com/chart/?symbol={tv_exchange}:{base_sym}.P"
 
+    lsr_block = ""
+    lsr_global = d.get("lsrGlobal")
+    lsr_top = d.get("lsrTop")
+    lsr_spread = d.get("lsrSpread")
+    if lsr_top is not None and lsr_global is not None:
+        spread_sign = "+" if lsr_spread >= 0 else ""
+        conferma = ""
+        if curr_a == "LONG" and lsr_spread > 0.3:
+            conferma = " ✅ <b>conferma smart money</b>"
+        elif curr_a == "SHORT" and lsr_spread < -0.3:
+            conferma = " ✅ <b>conferma smart money</b>"
+        elif curr_a == "LONG" and lsr_spread < -0.3:
+            conferma = " ⚠️ <b>top trader contrari</b>"
+        elif curr_a == "SHORT" and lsr_spread > 0.3:
+            conferma = " ⚠️ <b>top trader contrari</b>"
+        lsr_block = (
+            f"\n<b>L/S Top:</b> {lsr_top:.2f}  ·  <b>Global:</b> {lsr_global:.2f}\n"
+            f"  Spread: {spread_sign}{lsr_spread:.2f}{conferma}\n"
+        )
+
     msg = (
         f"{emoji} <b>{curr_a} {strength_text}</b> · <b>{asset}</b>\n"
         f"🕐 <b>Rilevato:</b> {now_italy_str()}\n\n"
@@ -382,7 +438,8 @@ def format_transition_message(t, other_active_state=None):
         f"<b>OI:</b>\n"
         f"  Δ 4h:  {fmt_pct(d.get('oiChange4h'))}\n"
         f"  Δ 24h: {fmt_pct(d.get('oiChange24h'))}\n\n"
-        f"<b>Funding:</b> {fmt_pct(d.get('fundingRate'), 4)} (8h)\n\n"
+        f"<b>Funding:</b> {fmt_pct(d.get('fundingRate'), 4)} (8h)"
+        f"{lsr_block}\n"
         f"<b>Bias 24h:</b> {t['bias']}\n"
         f"<b>Signal 4h:</b> {t['signal']}\n"
         f"<b>Transizione:</b> {prev} → {curr}\n\n"
@@ -515,6 +572,9 @@ def main():
                     "oi24h": data.get("oiChange24h"),
                     "oi4h":  data.get("oiChange4h"),
                     "funding": data.get("fundingRate"),
+                    "lsrTop": data.get("lsrTop"),
+                    "lsrGlobal": data.get("lsrGlobal"),
+                    "lsrSpread": data.get("lsrSpread"),
                 },
             }
             flag = " *" if transition_logged else ""
