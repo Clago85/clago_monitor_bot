@@ -1,17 +1,14 @@
 name: OI Monitor
 
-# Schedule: ogni ora al minuto 5 (UTC). I 5 min danno tempo agli exchange di pubblicare
-# i dati orari freschi dopo la chiusura della candela 1h. Cambia il cron se vuoi
-# cadenza diversa (es. '0 */2 * * *' = ogni 2h, '0,30 * * * *' = ogni 30 min).
+# Schedule: ogni ora al minuto 5 (UTC).
 on:
   schedule:
     - cron: '5 * * * *'
-  workflow_dispatch:  # permette di lanciarlo manualmente dal tab Actions
+  workflow_dispatch:
 
 permissions:
-  contents: write  # necessario per committare state.json e history.json
+  contents: write
 
-# Evita run concorrenti che potrebbero corrompere lo state
 concurrency:
   group: oi-monitor
   cancel-in-progress: false
@@ -19,7 +16,7 @@ concurrency:
 jobs:
   monitor:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
