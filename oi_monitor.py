@@ -605,6 +605,10 @@ def format_transition_message(t, other_active_state=None):
     strength_text_map = {"full": "PIENA", "strong": "FORTE", "moderate": "moderata", "weak": "debole"}
     emoji = {"LONG": "🟢", "SHORT": "🔴", "NEUTRAL": "⚪"}.get(curr_a, "⚪")
     strength_text = strength_text_map.get(curr_s, "")
+    # Tag setup di esaurimento (trend-continuation senza fresh OI)
+    exhaustion_tag = ""
+    if t.get("bias") in ("BEAR EXHAUSTION", "SHORT SQUEEZE"):
+        exhaustion_tag = " ⚠️ <i>esaurimento</i>"
     d = t["data"]; sym = d.get("source_symbol", asset)
     tv_exchange = "BYBIT" if sym.endswith(".6") else "BINANCE"
     base_sym = _binance_symbol(sym) or asset
