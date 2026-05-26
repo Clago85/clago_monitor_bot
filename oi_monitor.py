@@ -510,6 +510,11 @@ def compute_action(bias, signal_4h):
     if B == "SHORT SQUEEZE" and S == "REVERSAL": return ("SHORT", "moderate")
     if B == "BULLISH SOLIDO" and S == "REVERSAL": return ("SHORT", "weak")
     if B == "PRESSURE BUILDUP" and S == "REVERSAL": return ("SHORT", "weak")
+        # === Esaurimento (trend-continuation senza fresh OI) ===
+    if B == "BEAR EXHAUSTION" and S == "CONFERMA":                         return ("SHORT", "moderate")
+    if B == "BEAR EXHAUSTION" and S in ("PARZIALE", "PULLBACK"):           return ("SHORT", "weak")
+    if B == "SHORT SQUEEZE" and S == "CONFERMA":                           return ("LONG", "moderate")
+    if B == "SHORT SQUEEZE" and S in ("PARZIALE", "PULLBACK"):             return ("LONG", "weak")
     return ("NEUTRAL", "weak")
 
 
