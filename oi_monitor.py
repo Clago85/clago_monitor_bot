@@ -653,7 +653,7 @@ def format_transition_message(t, other_active_state=None):
             tech_block += f"<b>📊 Confluenza:</b> {score}/{total} indicatori d'accordo\n"
 
     msg = (
-        f"{emoji} <b>{curr_a} {strength_text}</b> · <b>{asset}</b>\n"
+        f"{emoji} <b>{curr_a} {strength_text}</b> · <b>{asset}</b>{exhaustion_tag}\n"
         f"🕐 <b>Rilevato:</b> {now_italy_str()}\n\n"
         f"<b>Prezzo:</b> {fmt_price(d['price'])}\n"
         f"  Δ 4h:  {fmt_pct(d.get('priceChange4h'))}\n"
