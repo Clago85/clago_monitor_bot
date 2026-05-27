@@ -773,4 +773,4 @@ def main():
                     "poc": data.get("poc"),
                 },
             }
-            flag = " *" if transition_logged else"
+            flag = " *" if transition_logged else ""
