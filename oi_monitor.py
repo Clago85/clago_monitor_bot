@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-OI Monitor — Coinalyze edition con FVG/POC/EMA/OBV e confluenza.
-"""
+"""OI Monitor — Coinalyze edition con confluenza e pending alerts."""
 
 import os
 import json
@@ -64,10 +62,10 @@ EMA_MACRO_1D = 200
 
 STATE_FILE = "state.json"
 HISTORY_FILE = "history.json"
+PENDING_ALERTS_FILE = "pending_alerts.json"
 
 COINALYZE_BASE = "https://api.coinalyze.net/v1"
 COINALYZE_KEY = os.environ.get("COINALYZE_API_KEY", "").strip()
-
 TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "").strip()
 TG_CHAT  = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
@@ -179,8 +177,7 @@ def compute_obv(klines, lookback=50):
         elif close < prev_close: obv -= vol
         series.append({"obv": obv, "close": close})
     recent = series[-min(lookback, len(series)):]
-    if len(recent) < 5:
-        return None
+    if len(recent) < 5: return None
     obv_start, obv_end = recent[0]["obv"], recent[-1]["obv"]
     price_start, price_end = recent[0]["close"], recent[-1]["close"]
     obv_change = ((obv_end - obv_start) / abs(obv_start)) * 100 if obv_start != 0 else 0
@@ -194,14 +191,12 @@ def compute_obv(klines, lookback=50):
 
 
 def compute_rvol(klines, lookback=20):
-    if not klines or len(klines) < lookback + 1:
-        return None
+    if not klines or len(klines) < lookback + 1: return None
     tail = klines[-lookback - 1:]
     vols = [_kline_val(k, "v") for k in tail]
     current = vols[-1]
     avg = sum(vols[:lookback]) / lookback
-    if avg <= 0:
-        return None
+    if avg <= 0: return None
     return {"ratio": current / avg, "current": current, "avg": avg}
 
 
@@ -238,8 +233,7 @@ def detect_fvgs(klines, current_price):
 
 
 def compute_poc_swing(klines, current_price, lookback_bars=126):
-    if not klines or len(klines) < 10:
-        return None
+    if not klines or len(klines) < 10: return None
     n = min(lookback_bars, len(klines))
     slice_ = klines[-n:]
     range_high, range_low = float("-inf"), float("inf")
@@ -247,8 +241,7 @@ def compute_poc_swing(klines, current_price, lookback_bars=126):
         h = _kline_val(k, "h"); l = _kline_val(k, "l")
         if h > range_high: range_high = h
         if l < range_low: range_low = l
-    if range_high <= range_low:
-        return None
+    if range_high <= range_low: return None
     BUCKETS = 100
     bucket_size = (range_high - range_low) / BUCKETS
     volumes = [0.0] * BUCKETS
@@ -317,7 +310,7 @@ def fetch_all_via_coinalyze():
 
     lsr_by_sym = {}
     lsr_batches = list(_chunks(all_assets, BATCH_SIZE))
-    print(f"[INFO] Coinalyze long/short ratio · {len(lsr_batches)} batch", flush=True)
+    print(f"[INFO] Coinalyze L/S top traders · {len(lsr_batches)} batch", flush=True)
     for batch_idx, batch in enumerate(lsr_batches, 1):
         sym_csv = ",".join(a["coinalyze"] for a in batch)
         try:
@@ -510,11 +503,11 @@ def compute_action(bias, signal_4h):
     if B == "SHORT SQUEEZE" and S == "REVERSAL": return ("SHORT", "moderate")
     if B == "BULLISH SOLIDO" and S == "REVERSAL": return ("SHORT", "weak")
     if B == "PRESSURE BUILDUP" and S == "REVERSAL": return ("SHORT", "weak")
-        # === Esaurimento (trend-continuation senza fresh OI) ===
-    if B == "BEAR EXHAUSTION" and S == "CONFERMA":                         return ("SHORT", "moderate")
-    if B == "BEAR EXHAUSTION" and S in ("PARZIALE", "PULLBACK"):           return ("SHORT", "weak")
-    if B == "SHORT SQUEEZE" and S == "CONFERMA":                           return ("LONG", "moderate")
-    if B == "SHORT SQUEEZE" and S in ("PARZIALE", "PULLBACK"):             return ("LONG", "weak")
+    # Esaurimento (trend-continuation senza fresh OI)
+    if B == "BEAR EXHAUSTION" and S == "CONFERMA": return ("SHORT", "moderate")
+    if B == "BEAR EXHAUSTION" and S in ("PARZIALE", "PULLBACK"): return ("SHORT", "weak")
+    if B == "SHORT SQUEEZE" and S == "CONFERMA": return ("LONG", "moderate")
+    if B == "SHORT SQUEEZE" and S in ("PARZIALE", "PULLBACK"): return ("LONG", "weak")
     return ("NEUTRAL", "weak")
 
 
@@ -605,7 +598,6 @@ def format_transition_message(t, other_active_state=None):
     strength_text_map = {"full": "PIENA", "strong": "FORTE", "moderate": "moderata", "weak": "debole"}
     emoji = {"LONG": "🟢", "SHORT": "🔴", "NEUTRAL": "⚪"}.get(curr_a, "⚪")
     strength_text = strength_text_map.get(curr_s, "")
-    # Tag setup di esaurimento (trend-continuation senza fresh OI)
     exhaustion_tag = ""
     if t.get("bias") in ("BEAR EXHAUSTION", "SHORT SQUEEZE"):
         exhaustion_tag = " ⚠️ <i>esaurimento</i>"
@@ -613,7 +605,6 @@ def format_transition_message(t, other_active_state=None):
     tv_exchange = "BYBIT" if sym.endswith(".6") else "BINANCE"
     base_sym = _binance_symbol(sym) or asset
     tv_link = f"https://www.tradingview.com/chart/?symbol={tv_exchange}:{base_sym}.P"
-
     lsr_block = ""
     lsr_global = d.get("lsrGlobal"); lsr_top = d.get("lsrTop"); lsr_spread = d.get("lsrSpread")
     if lsr_top is not None and lsr_global is not None:
@@ -624,7 +615,6 @@ def format_transition_message(t, other_active_state=None):
         elif curr_a == "LONG" and lsr_spread < -0.3: conferma = " ⚠️"
         elif curr_a == "SHORT" and lsr_spread > 0.3: conferma = " ⚠️"
         lsr_block = f"<b>L/S Top:</b> {lsr_top:.2f} · Global {lsr_global:.2f} · Δ {spread_sign}{lsr_spread:.2f}{conferma}\n"
-
     tech_block = ""
     trend = d.get("trend"); obv = d.get("obv"); rvol = d.get("rvol"); fvg = d.get("fvg"); poc = d.get("poc")
     if trend and trend.get("label"):
@@ -651,7 +641,6 @@ def format_transition_message(t, other_active_state=None):
         score = confluence.get("score", 0); total = confluence.get("total", 0)
         if total > 0:
             tech_block += f"<b>📊 Confluenza:</b> {score}/{total} indicatori d'accordo\n"
-
     msg = (
         f"{emoji} <b>{curr_a} {strength_text}</b> · <b>{asset}</b>{exhaustion_tag}\n"
         f"🕐 <b>Rilevato:</b> {now_italy_str()}\n\n"
@@ -670,7 +659,6 @@ def format_transition_message(t, other_active_state=None):
         f"\n<b>Transizione:</b> {prev} → {curr}\n"
         f"🔍 <a href=\"{tv_link}\">TradingView</a>"
     )
-
     if other_active_state is not None:
         longs, shorts = _build_other_active(other_active_state, asset)
         if longs or shorts:
@@ -685,25 +673,6 @@ def format_transition_message(t, other_active_state=None):
         else:
             msg += "\n\n<i>📊 Nessun'altra posizione attiva.</i>"
     return msg
-
-
-def send_telegram(text):
-    if not TG_TOKEN or not TG_CHAT:
-        print("[WARN] Telegram non configurato", flush=True)
-        return False
-    url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-    try:
-        r = requests.post(url, json={
-            "chat_id": TG_CHAT, "text": text,
-            "parse_mode": "HTML", "disable_web_page_preview": True,
-        }, timeout=HTTP_TIMEOUT)
-        if not r.ok:
-            print(f"[ERR] Telegram {r.status_code}: {r.text[:200]}", flush=True)
-            return False
-        return True
-    except Exception as e:
-        print(f"[ERR] Telegram exception: {e}", flush=True)
-        return False
 
 
 def load_json(path, default):
@@ -737,7 +706,7 @@ def main():
         all_data = fetch_all_via_coinalyze()
     except Exception as e:
         print(f"[FATAL] Coinalyze fetch fallito: {e}", flush=True)
-        send_telegram(f"⚠️ <b>OI Monitor errore</b>\n\nCoinalyze fetch fallito:\n<code>{str(e)[:300]}</code>")
+        save_json(PENDING_ALERTS_FILE, [f"⚠️ <b>OI Monitor errore</b>\n\nCoinalyze fetch fallito:\n<code>{str(e)[:300]}</code>"])
         return
 
     for asset in ASSETS:
@@ -804,56 +773,4 @@ def main():
                     "poc": data.get("poc"),
                 },
             }
-            flag = " *" if transition_logged else ""
-            print(f"  [OK] {asset_id:7s} {curr_label:18s} (era {prev_label or 'nuovo'}){flag}", flush=True)
-        except Exception as e:
-            errors.append(f"{asset_id}: {e}")
-            print(f"  [X] {asset_id}: exception {e}", flush=True)
-
-    save_json(STATE_FILE, new_state)
-
-    if is_first_run:
-        active_long = []; active_short = []
-        for aid, s in new_state.items():
-            label = s.get("label", "")
-            if label.startswith("LONG"):
-                strength = label.split("_")[1] if "_" in label else ""
-                active_long.append(f"  🟢 <b>{aid}</b> ({strength})")
-            elif label.startswith("SHORT"):
-                strength = label.split("_")[1] if "_" in label else ""
-                active_short.append(f"  🔴 <b>{aid}</b> ({strength})")
-        active_block = ""
-        if active_long:
-            active_block += "\n\n<b>📈 Setup LONG attivi:</b>\n" + "\n".join(active_long)
-        if active_short:
-            active_block += "\n\n<b>📉 Setup SHORT attivi:</b>\n" + "\n".join(active_short)
-        if not active_long and not active_short:
-            active_block = "\n\nNessun setup operativo attivo al momento."
-        startup_msg = (
-            f"🤖 <b>OI Monitor avviato</b>\n"
-            f"🕐 {now_italy_str()}\n\n"
-            f"Sto monitorando {len(ASSETS)} asset via <b>Coinalyze</b>.\n"
-            f"Riceverai alert quando un asset:\n"
-            f"• transita da NEUTRAL a LONG/SHORT\n"
-            f"• flippa direzione (LONG↔SHORT)\n"
-            f"• upgrade a forte (moderato→forte)"
-            f"{active_block}"
-        )
-        send_telegram(startup_msg)
-    else:
-        for t in transitions:
-            send_telegram(format_transition_message(t, other_active_state=new_state))
-            time.sleep(0.5)
-
-    print(f"\n=== Riepilogo ===", flush=True)
-    print(f"  Asset processati: {len(new_state)}/{len(ASSETS)}", flush=True)
-    print(f"  Transizioni:      {len(transitions)}", flush=True)
-    print(f"  Errori:           {len(errors)}", flush=True)
-    if errors:
-        for e in errors: print(f"    ! {e}", flush=True)
-    elapsed = (datetime.now(timezone.utc) - started_at).total_seconds()
-    print(f"  Durata: {elapsed:.1f}s\n", flush=True)
-
-
-if __name__ == "__main__":
-    main()
+            flag = " *" if transition_logged else
