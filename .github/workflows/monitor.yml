@@ -1,6 +1,5 @@
 name: OI Monitor
 
-# Schedule: ogni ora al minuto 5 (UTC).
 on:
   schedule:
     - cron: '5,35 * * * *'
@@ -72,3 +71,12 @@ jobs:
           else
             echo "Mirror: nessuna modifica"
           fi
+
+      - name: Wait CDN propagation
+        run: sleep 30
+
+      - name: Send pending Telegram alerts
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python send_alerts.py
