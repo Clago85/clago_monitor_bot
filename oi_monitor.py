@@ -774,3 +774,7 @@ def main():
                 },
             }
             flag = " *" if transition_logged else ""
+           print(f"  [OK] {asset_id:7s} {curr_label:18s} (era {prev_label or 'nuovo'}){flag}", flush=True)
+        except Exception as e:
+           errors.append(f"{asset_id}: {e}")
+           print(f"  [X] {asset_id}: exception {e}", flush=True)
