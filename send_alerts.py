@@ -8,7 +8,7 @@ import requests
 
 PENDING_PATH = "pending_alerts.json"
 TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "").strip()
-TG_CHAT  = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+TG_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
 
 def send_telegram(text):
@@ -18,8 +18,10 @@ def send_telegram(text):
     url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
     try:
         r = requests.post(url, json={
-            "chat_id": TG_CHAT, "text": text,
-            "parse_mode": "HTML", "disable_web_page_preview": True,
+            "chat_id": TG_CHAT,
+            "text": text,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True,
         }, timeout=20)
         if not r.ok:
             print(f"[ERR] Telegram {r.status_code}: {r.text[:200]}", flush=True)
@@ -42,8 +44,10 @@ def main():
         return
     if not isinstance(alerts, list) or not alerts:
         print("[INFO] pending_alerts.json vuoto")
-        try: os.remove(PENDING_PATH)
-        except Exception: pass
+        try:
+            os.remove(PENDING_PATH)
+        except Exception:
+            pass
         return
     print(f"[INFO] Invio {len(alerts)} alert Telegram...")
     sent = 0
