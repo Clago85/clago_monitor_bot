@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OI Monitor — Coinalyze + confluenza + soglie dinamiche per asset."""
+"""OI Monitor — Coinalyze + tier system + EMA 8/12 + pending alerts."""
 
 import os
 import json
