@@ -64,27 +64,46 @@ T = {
     "funding_very_neg": -0.03,
 }
 
-EMA_FAST_4H = 9
-EMA_SLOW_4H = 21
+EMA_FAST_4H = 8
+EMA_SLOW_4H = 12
 EMA_MACRO_1D = 200
 
-# Soglie OI specifiche per asset (override del T globale).
-# Tier 1 (BTC/ETH): OI molto stabile, soglia 2.5% per essere reattivo.
-# Tier 3 (memecoin tipo BONK/PENGU): OI volatile, soglia 7% per filtrare rumore.
-# Default per tutti gli altri: 5% (definito in T globale).
-ASSET_OI_OVERRIDES = {
-    "BTC":   {"oi_expanding": 2.5, "oi_strong_exp": 5,  "oi_contracting": -2.5, "oi_strong_contr": -5},
-    "ETH":   {"oi_expanding": 2.5, "oi_strong_exp": 5,  "oi_contracting": -2.5, "oi_strong_contr": -5},
-    "BONK":  {"oi_expanding": 7,   "oi_strong_exp": 14, "oi_contracting": -7,   "oi_strong_contr": -14},
-    "PENGU": {"oi_expanding": 7,   "oi_strong_exp": 14, "oi_contracting": -7,   "oi_strong_contr": -14},
+# === SISTEMA A TIER: ogni asset appartiene a una categoria con soglie diverse ===
+# MAJOR: market cap molto alto, OI stabile, volatilità bassa
+# STANDARD: la maggior parte degli altcoin, comportamento "normale" (default T)
+# SMALL: altcoin più piccoli, volatilità maggiore
+# MEMECOIN: estremamente volatili, OI/funding possono spike enormi
+ASSET_TIERS = {
+    "BTC": "MAJOR",   "ETH": "MAJOR",    "SOL": "MAJOR",
+    "SEI": "SMALL",   "RENDER": "SMALL", "VIRTUAL": "SMALL",
+    "ENA": "SMALL",   "KAS": "SMALL",    "STRK": "SMALL",  "ROSE": "SMALL",
+    "BONK": "MEMECOIN", "PENGU": "MEMECOIN",
+}
+
+TIER_OVERRIDES = {
+    "MAJOR": {
+        "oi_expanding": 2.5, "oi_strong_exp": 5, "oi_contracting": -2.5, "oi_strong_contr": -5,
+        "price_up": 1.5, "price_strong_up": 4, "price_down": -1.5, "price_strong_down": -4,
+    },
+    "SMALL": {
+        "oi_expanding": 6, "oi_strong_exp": 12, "oi_contracting": -6, "oi_strong_contr": -12,
+        "price_up": 2.5, "price_strong_up": 6, "price_down": -2.5, "price_strong_down": -6,
+    },
+    "MEMECOIN": {
+        "oi_expanding": 8, "oi_strong_exp": 16, "oi_contracting": -8, "oi_strong_contr": -16,
+        "price_up": 4, "price_strong_up": 10, "price_down": -4, "price_strong_down": -10,
+        "funding_high": 0.08, "funding_very_high": 0.15,
+        "funding_negative": -0.015, "funding_very_neg": -0.05,
+    },
 }
 
 
 def get_thresholds_for(asset_id):
-    """Restituisce le soglie T per un asset (con eventuali override specifici)."""
+    """Restituisce le soglie per un asset in base al suo tier."""
     t = T.copy()
-    if asset_id in ASSET_OI_OVERRIDES:
-        t.update(ASSET_OI_OVERRIDES[asset_id])
+    tier = ASSET_TIERS.get(asset_id)
+    if tier and tier in TIER_OVERRIDES:
+        t.update(TIER_OVERRIDES[tier])
     return t
 
 
