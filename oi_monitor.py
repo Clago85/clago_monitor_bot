@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OI Monitor — Coinalyze + confluenza + pending alerts."""
+"""OI Monitor — Coinalyze + confluenza + soglie dinamiche per asset."""
 
 import os
 import json
@@ -67,6 +67,26 @@ T = {
 EMA_FAST_4H = 9
 EMA_SLOW_4H = 21
 EMA_MACRO_1D = 200
+
+# Soglie OI specifiche per asset (override del T globale).
+# Tier 1 (BTC/ETH): OI molto stabile, soglia 2.5% per essere reattivo.
+# Tier 3 (memecoin tipo BONK/PENGU): OI volatile, soglia 7% per filtrare rumore.
+# Default per tutti gli altri: 5% (definito in T globale).
+ASSET_OI_OVERRIDES = {
+    "BTC":   {"oi_expanding": 2.5, "oi_strong_exp": 5,  "oi_contracting": -2.5, "oi_strong_contr": -5},
+    "ETH":   {"oi_expanding": 2.5, "oi_strong_exp": 5,  "oi_contracting": -2.5, "oi_strong_contr": -5},
+    "BONK":  {"oi_expanding": 7,   "oi_strong_exp": 14, "oi_contracting": -7,   "oi_strong_contr": -14},
+    "PENGU": {"oi_expanding": 7,   "oi_strong_exp": 14, "oi_contracting": -7,   "oi_strong_contr": -14},
+}
+
+
+def get_thresholds_for(asset_id):
+    """Restituisce le soglie T per un asset (con eventuali override specifici)."""
+    t = T.copy()
+    if asset_id in ASSET_OI_OVERRIDES:
+        t.update(ASSET_OI_OVERRIDES[asset_id])
+    return t
+
 
 STATE_FILE = "state.json"
 HISTORY_FILE = "history.json"
@@ -204,7 +224,8 @@ def compute_obv(klines, lookback=50):
     price_change = ((price_end - price_start) / price_start) * 100 if price_start else 0
     obv_dir = 1 if obv_change > 0 else (-1 if obv_change < 0 else 0)
     price_dir = 1 if price_change > 0 else (-1 if price_change < 0 else 0)
-    diverge = (obv_dir != price_dir and obv_dir != 0 and price_dir != 0 and abs(obv_change) > 5 and abs(price_change) > 2)
+    diverge = (obv_dir != price_dir and obv_dir != 0 and price_dir != 0
+               and abs(obv_change) > 5 and abs(price_change) > 2)
     return {
         "obvChange": obv_change,
         "priceChange": price_change,
@@ -241,12 +262,8 @@ def detect_fvgs(klines, current_price):
                     filled = True
                     break
             if not filled:
-                unfilled.append({
-                    "type": "bull",
-                    "top": l2,
-                    "bottom": h0,
-                    "size": ((l2 - h0) / h0) * 100 if h0 > 0 else 0,
-                })
+                unfilled.append({"type": "bull", "top": l2, "bottom": h0,
+                                 "size": ((l2 - h0) / h0) * 100 if h0 > 0 else 0})
         if l0 > h2:
             filled = False
             for j in range(i + 1, len(klines)):
@@ -254,12 +271,8 @@ def detect_fvgs(klines, current_price):
                     filled = True
                     break
             if not filled:
-                unfilled.append({
-                    "type": "bear",
-                    "top": l0,
-                    "bottom": h2,
-                    "size": ((l0 - h2) / h2) * 100 if h2 > 0 else 0,
-                })
+                unfilled.append({"type": "bear", "top": l0, "bottom": h2,
+                                 "size": ((l0 - h2) / h2) * 100 if h2 > 0 else 0})
     above_candidates = [f for f in unfilled if f["bottom"] > current_price]
     below_candidates = [f for f in unfilled if f["top"] < current_price]
     above_candidates.sort(key=lambda x: x["bottom"])
@@ -539,21 +552,22 @@ def fetch_all_via_coinalyze():
     return result
 
 
-def compute_bias(d):
+def compute_bias(d, thresholds=None):
+    t = thresholds or T
     oi = d.get("oiChange24h") or 0
     px = d.get("priceChange24h") or 0
     fr = d.get("fundingRate") or 0
-    f_v_high = fr > T["funding_very_high"]
-    f_neg = fr < T["funding_negative"]
-    f_v_neg = fr < T["funding_very_neg"]
-    oi_exp = oi > T["oi_expanding"]
-    oi_str_exp = oi > T["oi_strong_exp"]
-    oi_contr = oi < T["oi_contracting"]
-    oi_str_contr = oi < T["oi_strong_contr"]
-    px_up = px > T["price_up"]
-    px_str_up = px > T["price_strong_up"]
-    px_down = px < T["price_down"]
-    px_str_down = px < T["price_strong_down"]
+    f_v_high = fr > t["funding_very_high"]
+    f_neg = fr < t["funding_negative"]
+    f_v_neg = fr < t["funding_very_neg"]
+    oi_exp = oi > t["oi_expanding"]
+    oi_str_exp = oi > t["oi_strong_exp"]
+    oi_contr = oi < t["oi_contracting"]
+    oi_str_contr = oi < t["oi_strong_contr"]
+    px_up = px > t["price_up"]
+    px_str_up = px > t["price_strong_up"]
+    px_down = px < t["price_down"]
+    px_str_down = px < t["price_strong_down"]
     px_flat = abs(px) < 1.5
     if px_str_down and oi_str_contr and f_neg:
         return "CAPITULATION"
@@ -905,7 +919,7 @@ def main():
             print(f"  [X] {asset_id}: {data['error']}", flush=True)
             continue
         try:
-            bias = compute_bias(data)
+            bias = compute_bias(data, get_thresholds_for(asset_id))
             signal = compute_signal_4h(data)
             action, strength, conf_score, conf_total = compute_action_with_confluence(
                 bias, signal,
