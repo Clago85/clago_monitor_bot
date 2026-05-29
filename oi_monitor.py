@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OI Monitor — Coinalyze + tier system + EMA 8/12 + pending alerts."""
+"""OI Monitor — Coinalyze + tier system + EMA 8/12 + Signal 4h per tier + pending alerts."""
 
 import os
 import json
@@ -62,6 +62,12 @@ T = {
     "funding_very_high": 0.08,
     "funding_negative": -0.01,
     "funding_very_neg": -0.03,
+    # --- Soglie Signal 4h (default STANDARD) ---
+    "sig_px_flat": 0.5,    # BUILD-UP: |px4| sotto questa = "piatto"; e soglia min px CONFERMA
+    "sig_px_move": 0.8,    # px divergenza/movimento min su 4h
+    "sig_px24_move": 1.0,  # px divergenza min su 24h
+    "sig_oi_move": 1.5,    # oi build-up/divergenza/conferma min su 4h
+    "sig_oi24_move": 2.0,  # oi divergenza min su 24h
 }
 
 EMA_FAST_4H = 8
@@ -84,16 +90,25 @@ TIER_OVERRIDES = {
     "MAJOR": {
         "oi_expanding": 2.5, "oi_strong_exp": 5, "oi_contracting": -2.5, "oi_strong_contr": -5,
         "price_up": 1.5, "price_strong_up": 4, "price_down": -1.5, "price_strong_down": -4,
+        # Signal 4h più reattivo: BTC/ETH/SOL si muovono poco, soglie strette
+        "sig_px_flat": 0.4, "sig_px_move": 0.6, "sig_px24_move": 0.8,
+        "sig_oi_move": 1.0, "sig_oi24_move": 1.5,
     },
     "SMALL": {
         "oi_expanding": 6, "oi_strong_exp": 12, "oi_contracting": -6, "oi_strong_contr": -12,
         "price_up": 2.5, "price_strong_up": 6, "price_down": -2.5, "price_strong_down": -6,
+        # Signal 4h leggermente più largo per filtrare rumore
+        "sig_px_flat": 0.7, "sig_px_move": 1.2, "sig_px24_move": 1.5,
+        "sig_oi_move": 2.0, "sig_oi24_move": 3.0,
     },
     "MEMECOIN": {
         "oi_expanding": 8, "oi_strong_exp": 16, "oi_contracting": -8, "oi_strong_contr": -16,
         "price_up": 4, "price_strong_up": 10, "price_down": -4, "price_strong_down": -10,
         "funding_high": 0.08, "funding_very_high": 0.15,
         "funding_negative": -0.015, "funding_very_neg": -0.05,
+        # Signal 4h molto largo: BONK/PENGU oscillano del 2-3% in 4h come routine
+        "sig_px_flat": 1.5, "sig_px_move": 2.5, "sig_px24_move": 3.0,
+        "sig_oi_move": 3.5, "sig_oi24_move": 5.0,
     },
 }
 
@@ -609,29 +624,36 @@ def compute_bias(d, thresholds=None):
     return "NEUTRAL"
 
 
-def compute_signal_4h(d):
+def compute_signal_4h(d, thresholds=None):
+    t = thresholds or T
     oi4 = d.get("oiChange4h") or 0
     px4 = d.get("priceChange4h") or 0
     oi24 = d.get("oiChange24h") or 0
     px24 = d.get("priceChange24h") or 0
+
+    px_flat   = t["sig_px_flat"]
+    px_move   = t["sig_px_move"]
+    px24_move = t["sig_px24_move"]
+    oi_move   = t["sig_oi_move"]
+    oi24_move = t["sig_oi24_move"]
 
     def sgn(x):
         return 1 if x > 0 else -1 if x < 0 else 0
 
     px4_s, px24_s = sgn(px4), sgn(px24)
     oi4_s, oi24_s = sgn(oi4), sgn(oi24)
-    if abs(px4) < 0.5 and oi4 > 1.5:
+    if abs(px4) < px_flat and oi4 > oi_move:
         return "BUILD-UP"
-    px_div = abs(px4) > 0.8 and abs(px24) > 1 and px4_s != 0 and px24_s != 0 and px4_s != px24_s
-    oi_div = abs(oi4) > 1.5 and abs(oi24) > 2 and oi4_s != 0 and oi24_s != 0 and oi4_s != oi24_s
+    px_div = abs(px4) > px_move and abs(px24) > px24_move and px4_s != 0 and px24_s != 0 and px4_s != px24_s
+    oi_div = abs(oi4) > oi_move and abs(oi24) > oi24_move and oi4_s != 0 and oi24_s != 0 and oi4_s != oi24_s
     if px_div and oi_div:
         return "REVERSAL"
     if oi_div:
         return "OI GIRA"
     if px_div:
         return "PULLBACK"
-    px_conf = px4_s == px24_s and px4_s != 0 and abs(px4) > 0.5
-    oi_conf = oi4_s == oi24_s and oi4_s != 0 and abs(oi4) > 1.5
+    px_conf = px4_s == px24_s and px4_s != 0 and abs(px4) > px_flat
+    oi_conf = oi4_s == oi24_s and oi4_s != 0 and abs(oi4) > oi_move
     if px_conf and oi_conf:
         return "CONFERMA"
     if px_conf or oi_conf:
@@ -938,8 +960,9 @@ def main():
             print(f"  [X] {asset_id}: {data['error']}", flush=True)
             continue
         try:
-            bias = compute_bias(data, get_thresholds_for(asset_id))
-            signal = compute_signal_4h(data)
+            thr = get_thresholds_for(asset_id)
+            bias = compute_bias(data, thr)
+            signal = compute_signal_4h(data, thr)
             action, strength, conf_score, conf_total = compute_action_with_confluence(
                 bias, signal,
                 data.get("trend"), data.get("obv"),
