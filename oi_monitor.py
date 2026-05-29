@@ -975,6 +975,11 @@ def main():
             transition_logged = False
             is_transition = prev_label and should_notify(prev_label, curr_label)
             is_new_active = (not prev_label) and (not is_first_run) and action in ("LONG", "SHORT")
+            # Cambio di stato "generico": qualsiasi variazione di label (include
+            # anche uscite a NEUTRAL e indebolimenti, che NON generano alert Telegram).
+            label_changed = bool(prev_label) and (prev_label != curr_label)
+
+            # --- Alert Telegram: solo eventi rilevanti (ingressi, inversioni, rafforzamenti) ---
             if is_transition or is_new_active:
                 from_label = prev_label if is_transition else "NEW"
                 transition = {
@@ -988,10 +993,15 @@ def main():
                     "confluence": {"score": conf_score, "total": conf_total},
                 }
                 transitions.append(transition)
+                transition_logged = True
+
+            # --- Storico history.json: OGNI cambio di stato (audit completo h24) ---
+            if label_changed or is_new_active:
+                hist_from = prev_label if label_changed else "NEW"
                 append_history({
                     "ts": int(time.time()),
                     "asset": asset_id,
-                    "from": from_label,
+                    "from": hist_from,
                     "to": curr_label,
                     "bias": bias,
                     "signal": signal,
@@ -1004,7 +1014,6 @@ def main():
                     "confluence_score": conf_score,
                     "confluence_total": conf_total,
                 })
-                transition_logged = True
             new_state[asset_id] = {
                 "label": curr_label,
                 "bias": bias,
@@ -1088,3 +1097,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# audit history: ogni cambio di stato viene registrato in history.json (h24)
