@@ -1059,6 +1059,12 @@ def main():
             # Cambio di stato "generico": qualsiasi variazione di label (include
             # anche uscite a NEUTRAL e indebolimenti, che NON generano alert Telegram).
             label_changed = bool(prev_label) and (prev_label != curr_label)
+            # since_ts = "da quando" l'asset è in QUESTO stato (orario dell'ultima
+            # transizione di label). Resta FISSO finché il label non cambia, così
+            # l'orario mostrato nel pannello/storico coincide con l'alert Telegram e
+            # non si sposta ad ogni run del bot.
+            prev_since = prev_entry.get("since_ts")
+            since_ts = int(time.time()) if (label_changed or not prev_since) else prev_since
 
             # --- Alert Telegram: solo eventi rilevanti (ingressi, inversioni, rafforzamenti) ---
             if is_transition or is_new_active:
@@ -1100,6 +1106,7 @@ def main():
                 "bias": bias,
                 "signal": signal,
                 "ts": int(time.time()),
+                "since_ts": since_ts,
                 "confluence": {"score": conf_score, "total": conf_total},
                 "data": {
                     "price": data["price"],
