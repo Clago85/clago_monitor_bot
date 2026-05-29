@@ -163,14 +163,16 @@ def coinalyze_get(path, params, max_retries=5):
     raise Exception(f"Coinalyze {path}: rate-limit dopo {max_retries} tentativi")
 
 
-# === Binance Futures public data: Long/Short Ratio ===
-# Coinalyze NON espone il ratio dei "top trader" (solo un ratio aggregato `r`).
-# Binance lo pubblica gratis (senza API key): Top Trader (per posizioni) + Global (per account).
-BINANCE_FAPI = "https://fapi.binance.com"
+# === Bybit public data: Long/Short Ratio (fallback) ===
+# Coinalyze fornisce un long/short ratio affidabile (campo `r`) e funziona da GitHub
+# Actions. Binance Futures invece è bloccato (HTTP 451) dagli IP dei runner, quindi NON
+# è utilizzabile qui. Bybit viene usato solo come "riempi-buchi" per gli asset che
+# Coinalyze non copre.
+BYBIT_BASE = "https://api.bybit.com"
 
 
-def binance_get(path, params, max_retries=3):
-    url = f"{BINANCE_FAPI}{path}"
+def bybit_get(path, params, max_retries=3):
+    url = f"{BYBIT_BASE}{path}"
     for attempt in range(max_retries):
         try:
             r = requests.get(url, params=params, timeout=HTTP_TIMEOUT)
@@ -179,52 +181,35 @@ def binance_get(path, params, max_retries=3):
                 raise
             time.sleep(2)
             continue
-        if r.status_code in (429, 418):
-            time.sleep(min(2 ** attempt + 2, 30))
-            continue
         if r.status_code != 200:
-            raise Exception(f"Binance {path} HTTP {r.status_code}: {r.text[:160]}")
+            raise Exception(f"Bybit {path} HTTP {r.status_code}: {r.text[:160]}")
         return r.json()
-    raise Exception(f"Binance {path}: troppi tentativi")
+    raise Exception(f"Bybit {path}: troppi tentativi")
 
 
-def _binance_last_lsr(resp):
-    if isinstance(resp, list) and resp:
-        v = resp[-1].get("longShortRatio")
-        try:
-            return float(v) if v is not None else None
-        except (TypeError, ValueError):
-            return None
-    return None
-
-
-def fetch_binance_lsr(assets):
-    """Restituisce {asset_id: {"top": float|None, "global": float|None}}.
-    Top  = Top Trader Long/Short Ratio (per posizioni).
-    Global = Global Long/Short Account Ratio.
-    Gli asset senza simbolo Binance (es. KAS) o non quotati vengono saltati."""
+def fetch_bybit_lsr(assets):
+    """Long/Short ratio (account ratio Bybit), usato solo come fallback.
+    Restituisce {asset_id: float}. ratio = buyRatio / sellRatio."""
     out = {}
     syms = [(a["id"], a.get("binance")) for a in assets if a.get("binance")]
-    print(f"[INFO] Binance L/S ratio (top+global) · {len(syms)} simboli", flush=True)
+    if not syms:
+        return out
+    print(f"[INFO] Bybit L/S ratio (fallback) · {len(syms)} simboli", flush=True)
     for aid, bsym in syms:
-        top = glob = None
         try:
-            top = _binance_last_lsr(binance_get(
-                "/futures/data/topLongShortPositionRatio",
-                {"symbol": bsym, "period": "4h", "limit": 1},
-            ))
+            resp = bybit_get(
+                "/v5/market/account-ratio",
+                {"category": "linear", "symbol": bsym, "period": "4h", "limit": 1},
+            )
+            lst = ((resp or {}).get("result") or {}).get("list") or []
+            if lst:
+                buy = float(lst[0].get("buyRatio") or 0)
+                sell = float(lst[0].get("sellRatio") or 0)
+                if sell > 0:
+                    out[aid] = buy / sell
         except Exception as e:
-            print(f"  [WARN] Binance top L/S {aid} ({bsym}): {e}", flush=True)
-        try:
-            glob = _binance_last_lsr(binance_get(
-                "/futures/data/globalLongShortAccountRatio",
-                {"symbol": bsym, "period": "4h", "limit": 1},
-            ))
-        except Exception as e:
-            print(f"  [WARN] Binance global L/S {aid} ({bsym}): {e}", flush=True)
-        if top is not None or glob is not None:
-            out[aid] = {"top": top, "global": glob}
-        time.sleep(0.25)
+            print(f"  [WARN] Bybit L/S {aid} ({bsym}): {e}", flush=True)
+        time.sleep(0.2)
     return out
 
 
@@ -594,9 +579,6 @@ def fetch_all_via_coinalyze():
         if batch_idx < len(batches):
             time.sleep(SLEEP_BETWEEN)
 
-    # Top/Global L/S ratio dai dati pubblici Binance (Coinalyze non ha il top-trader)
-    binance_lsr_by_id = fetch_binance_lsr(ASSETS)
-
     result = {}
     for asset in ASSETS:
         sym = asset["coinalyze"]
@@ -624,17 +606,11 @@ def fetch_all_via_coinalyze():
             price_change_24h = ((current_price - price_24h_ago) / price_24h_ago) * 100 if price_24h_ago else None
             price_change_4h = ((current_price - price_4h_ago) / price_4h_ago) * 100 if price_4h_ago else None
             funding_rate = fr_by_sym.get(sym, 0.0) * 100
-            # L/S Top dai dati Binance; fallback al ratio aggregato Coinalyze se Binance manca
+            # L/S ratio: un solo valore affidabile da Coinalyze (campo r).
+            # Gli asset senza dato Coinalyze verranno riempiti con Bybit più sotto.
             c_lsr = lsr_by_sym.get(sym, {})
-            b_lsr = binance_lsr_by_id.get(aid, {})
-            coinalyze_ratio = c_lsr.get("global")
-            lsr_top = b_lsr.get("top")
-            lsr_global = b_lsr.get("global")
-            if lsr_global is None:
-                lsr_global = coinalyze_ratio
-            if lsr_top is None:
-                lsr_top = coinalyze_ratio
-            lsr_spread = (lsr_top - lsr_global) if (lsr_top is not None and lsr_global is not None) else None
+            lsr_value = c_lsr.get("global")
+            lsr_source = "coinalyze" if lsr_value is not None else None
             k4h = klines4h_by_sym.get(sym, [])
             k1d = klines1d_by_sym.get(sym, [])
             trend = compute_trend(k4h, k1d, current_price)
@@ -653,9 +629,8 @@ def fetch_all_via_coinalyze():
                 "currentOI_USD": current_oi * current_price,
                 "oiChange24h": oi_change_24h,
                 "oiChange4h": oi_change_4h,
-                "lsrGlobal": lsr_global,
-                "lsrTop": lsr_top,
-                "lsrSpread": lsr_spread,
+                "lsr": lsr_value,
+                "lsrSource": lsr_source,
                 "trend": trend,
                 "obv": obv,
                 "rvol": rvol,
@@ -664,6 +639,20 @@ def fetch_all_via_coinalyze():
             }
         except Exception as e:
             result[aid] = {"error": f"parse error: {e}"}
+
+    # Riempi i buchi L/S (asset senza dato Coinalyze) con Bybit
+    missing = [a for a in ASSETS
+               if isinstance(result.get(a["id"]), dict)
+               and not result[a["id"]].get("error")
+               and result[a["id"]].get("lsr") is None
+               and a.get("binance")]
+    if missing:
+        bybit_lsr = fetch_bybit_lsr(missing)
+        for a in missing:
+            v = bybit_lsr.get(a["id"])
+            if v is not None:
+                result[a["id"]]["lsr"] = v
+                result[a["id"]]["lsrSource"] = "bybit"
     return result
 
 
@@ -914,21 +903,12 @@ def format_transition_message(t, other_active_state=None):
     base_sym = _binance_symbol(sym) or asset
     tv_link = f"https://www.tradingview.com/chart/?symbol={tv_exchange}:{base_sym}.P"
     lsr_block = ""
-    lsr_global = d.get("lsrGlobal")
-    lsr_top = d.get("lsrTop")
-    lsr_spread = d.get("lsrSpread")
-    if lsr_top is not None and lsr_global is not None:
-        spread_sign = "+" if lsr_spread >= 0 else ""
-        conferma = ""
-        if curr_a == "LONG" and lsr_spread > 0.3:
-            conferma = " ✅"
-        elif curr_a == "SHORT" and lsr_spread < -0.3:
-            conferma = " ✅"
-        elif curr_a == "LONG" and lsr_spread < -0.3:
-            conferma = " ⚠️"
-        elif curr_a == "SHORT" and lsr_spread > 0.3:
-            conferma = " ⚠️"
-        lsr_block = f"<b>L/S Top:</b> {lsr_top:.2f} · Global {lsr_global:.2f} · Δ {spread_sign}{lsr_spread:.2f}{conferma}\n"
+    lsr_value = d.get("lsr")
+    if lsr_value is not None:
+        src = d.get("lsrSource") or ""
+        src_tag = f" ({src})" if src else ""
+        bias_tag = " · più long" if lsr_value >= 1.0 else " · più short"
+        lsr_block = f"<b>L/S ratio:</b> {lsr_value:.2f}{bias_tag}{src_tag}\n"
     tech_block = ""
     trend = d.get("trend")
     obv = d.get("obv")
@@ -1115,9 +1095,8 @@ def main():
                     "oi24h": data.get("oiChange24h"),
                     "oi4h": data.get("oiChange4h"),
                     "funding": data.get("fundingRate"),
-                    "lsrTop": data.get("lsrTop"),
-                    "lsrGlobal": data.get("lsrGlobal"),
-                    "lsrSpread": data.get("lsrSpread"),
+                    "lsr": data.get("lsr"),
+                    "lsrSource": data.get("lsrSource"),
                     "trend": data.get("trend"),
                     "obv": data.get("obv"),
                     "rvol": data.get("rvol"),
