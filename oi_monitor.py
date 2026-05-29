@@ -213,6 +213,54 @@ def fetch_bybit_lsr(assets):
     return out
 
 
+# === OKX public data: Long/Short Ratio (terzo fallback) ===
+# Usato per gli asset che né Coinalyze né Bybit coprono. Endpoint pubblico, accessibile
+# da GitHub Actions. ccy = ticker dell'asset (es. TAO, INJ).
+OKX_BASE = "https://www.okx.com"
+
+
+def okx_get(path, params, max_retries=3):
+    url = f"{OKX_BASE}{path}"
+    for attempt in range(max_retries):
+        try:
+            r = requests.get(url, params=params, timeout=HTTP_TIMEOUT)
+        except Exception:
+            if attempt == max_retries - 1:
+                raise
+            time.sleep(2)
+            continue
+        if r.status_code != 200:
+            raise Exception(f"OKX {path} HTTP {r.status_code}: {r.text[:160]}")
+        return r.json()
+    raise Exception(f"OKX {path}: troppi tentativi")
+
+
+def fetch_okx_lsr(assets):
+    """Long/Short account ratio da OKX (rubik), usato come ulteriore fallback.
+    Restituisce {asset_id: float}. ccy = ticker dell'asset; risposta = lista [ts, ratio]."""
+    out = {}
+    if not assets:
+        return out
+    print(f"[INFO] OKX L/S ratio (fallback) · {len(assets)} simboli", flush=True)
+    for a in assets:
+        aid = a["id"]
+        try:
+            resp = okx_get(
+                "/api/v5/rubik/stat/contracts/long-short-account-ratio",
+                {"ccy": aid, "period": "4H"},
+            )
+            data = (resp or {}).get("data") or []
+            if data:
+                # data ordinata dal più recente; ogni voce è [timestamp, ratio]
+                ratio = float(data[0][1])
+                if ratio > 0:
+                    out[aid] = ratio
+        except Exception as e:
+            print(f"  [WARN] OKX L/S {aid}: {e}", flush=True)
+        time.sleep(0.2)
+    return out
+
+
 def _extract_history(item):
     if isinstance(item, dict):
         if "history" in item and isinstance(item["history"], list):
@@ -653,6 +701,18 @@ def fetch_all_via_coinalyze():
             if v is not None:
                 result[a["id"]]["lsr"] = v
                 result[a["id"]]["lsrSource"] = "bybit"
+    # Ancora senza L/S dopo Bybit -> ultimo tentativo con OKX
+    still_missing = [a for a in ASSETS
+                     if isinstance(result.get(a["id"]), dict)
+                     and not result[a["id"]].get("error")
+                     and result[a["id"]].get("lsr") is None]
+    if still_missing:
+        okx_lsr = fetch_okx_lsr(still_missing)
+        for a in still_missing:
+            v = okx_lsr.get(a["id"])
+            if v is not None:
+                result[a["id"]]["lsr"] = v
+                result[a["id"]]["lsrSource"] = "okx"
     return result
 
 
