@@ -21,32 +21,38 @@ def now_italy_str():
 
 
 ASSETS = [
-    {"id": "BTC", "coinalyze": "BTCUSDT_PERP.A"},
-    {"id": "ETH", "coinalyze": "ETHUSDT_PERP.A"},
-    {"id": "SOL", "coinalyze": "SOLUSDT_PERP.A"},
-    {"id": "LINK", "coinalyze": "LINKUSDT_PERP.A"},
-    {"id": "ICP", "coinalyze": "ICPUSDT_PERP.A"},
-    {"id": "SUI", "coinalyze": "SUIUSDT_PERP.A"},
-    {"id": "HBAR", "coinalyze": "HBARUSDT_PERP.A"},
-    {"id": "AR", "coinalyze": "ARUSDT_PERP.A"},
-    {"id": "TAO", "coinalyze": "TAOUSDT_PERP.A"},
-    {"id": "RENDER", "coinalyze": "RENDERUSDT_PERP.A"},
-    {"id": "VIRTUAL", "coinalyze": "VIRTUALUSDT_PERP.A"},
-    {"id": "INJ", "coinalyze": "INJUSDT_PERP.A"},
-    {"id": "SEI", "coinalyze": "SEIUSDT_PERP.A"},
-    {"id": "ONDO", "coinalyze": "ONDOUSDT_PERP.A"},
-    {"id": "ENA", "coinalyze": "ENAUSDT_PERP.A"},
-    {"id": "JUP", "coinalyze": "JUPUSDT_PERP.A"},
-    {"id": "BONK", "coinalyze": "1000BONKUSDT_PERP.A"},
-    {"id": "PENGU", "coinalyze": "PENGUUSDT_PERP.A"},
-    {"id": "KAS", "coinalyze": "KASUSDT.6"},
-    {"id": "TRX", "coinalyze": "TRXUSDT_PERP.A"},
-    {"id": "TON", "coinalyze": "TONUSDT_PERP.A"},
-    {"id": "ROSE", "coinalyze": "ROSEUSDT_PERP.A"},
-    {"id": "NEAR", "coinalyze": "NEARUSDT_PERP.A"},
-    {"id": "FET", "coinalyze": "FETUSDT_PERP.A"},
-    {"id": "HYPE", "coinalyze": "HYPEUSDT_PERP.A"},
-    {"id": "STRK", "coinalyze": "STRKUSDT_PERP.A"},
+    {"id": "BTC", "coinalyze": "BTCUSDT_PERP.A", "binance": "BTCUSDT"},
+    {"id": "ETH", "coinalyze": "ETHUSDT_PERP.A", "binance": "ETHUSDT"},
+    {"id": "SOL", "coinalyze": "SOLUSDT_PERP.A", "binance": "SOLUSDT"},
+    {"id": "LINK", "coinalyze": "LINKUSDT_PERP.A", "binance": "LINKUSDT"},
+    {"id": "ICP", "coinalyze": "ICPUSDT_PERP.A", "binance": "ICPUSDT"},
+    {"id": "SUI", "coinalyze": "SUIUSDT_PERP.A", "binance": "SUIUSDT"},
+    {"id": "HBAR", "coinalyze": "HBARUSDT_PERP.A", "binance": "HBARUSDT"},
+    {"id": "AR", "coinalyze": "ARUSDT_PERP.A", "binance": "ARUSDT"},
+    {"id": "TAO", "coinalyze": "TAOUSDT_PERP.A", "binance": "TAOUSDT"},
+    {"id": "RENDER", "coinalyze": "RENDERUSDT_PERP.A", "binance": "RENDERUSDT"},
+    {"id": "VIRTUAL", "coinalyze": "VIRTUALUSDT_PERP.A", "binance": "VIRTUALUSDT"},
+    {"id": "INJ", "coinalyze": "INJUSDT_PERP.A", "binance": "INJUSDT"},
+    {"id": "SEI", "coinalyze": "SEIUSDT_PERP.A", "binance": "SEIUSDT"},
+    {"id": "ONDO", "coinalyze": "ONDOUSDT_PERP.A", "binance": "ONDOUSDT"},
+    {"id": "ENA", "coinalyze": "ENAUSDT_PERP.A", "binance": "ENAUSDT"},
+    {"id": "JUP", "coinalyze": "JUPUSDT_PERP.A", "binance": "JUPUSDT"},
+    {"id": "BONK", "coinalyze": "1000BONKUSDT_PERP.A", "binance": "1000BONKUSDT"},
+    {"id": "PENGU", "coinalyze": "PENGUUSDT_PERP.A", "binance": "PENGUUSDT"},
+    {"id": "KAS", "coinalyze": "KASUSDT.6", "binance": None},
+    {"id": "TRX", "coinalyze": "TRXUSDT_PERP.A", "binance": "TRXUSDT"},
+    {"id": "TON", "coinalyze": "TONUSDT_PERP.A", "binance": "TONUSDT"},
+    {"id": "ROSE", "coinalyze": "ROSEUSDT_PERP.A", "binance": "ROSEUSDT"},
+    {"id": "NEAR", "coinalyze": "NEARUSDT_PERP.A", "binance": "NEARUSDT"},
+    {"id": "FET", "coinalyze": "FETUSDT_PERP.A", "binance": "FETUSDT"},
+    {"id": "HYPE", "coinalyze": "HYPEUSDT_PERP.A", "binance": "HYPEUSDT"},
+    {"id": "STRK", "coinalyze": "STRKUSDT_PERP.A", "binance": "STRKUSDT"},
+    # --- Nuovi asset (mag 2026) ---
+    {"id": "XLM", "coinalyze": "XLMUSDT_PERP.A", "binance": "XLMUSDT"},
+    {"id": "ZEC", "coinalyze": "ZECUSDT_PERP.A", "binance": "ZECUSDT"},
+    {"id": "ALGO", "coinalyze": "ALGOUSDT_PERP.A", "binance": "ALGOUSDT"},
+    {"id": "APT", "coinalyze": "APTUSDT_PERP.A", "binance": "APTUSDT"},
+    {"id": "FARTCOIN", "coinalyze": "FARTCOINUSDT_PERP.A", "binance": "FARTCOINUSDT"},
 ]
 
 T = {
@@ -83,7 +89,7 @@ ASSET_TIERS = {
     "BTC": "MAJOR",   "ETH": "MAJOR",    "SOL": "MAJOR",
     "SEI": "SMALL",   "RENDER": "SMALL", "VIRTUAL": "SMALL",
     "ENA": "SMALL",   "KAS": "SMALL",    "STRK": "SMALL",  "ROSE": "SMALL",
-    "BONK": "MEMECOIN", "PENGU": "MEMECOIN",
+    "BONK": "MEMECOIN", "PENGU": "MEMECOIN", "FARTCOIN": "MEMECOIN",
 }
 
 TIER_OVERRIDES = {
@@ -155,6 +161,71 @@ def coinalyze_get(path, params, max_retries=5):
             raise Exception(f"Coinalyze {path} HTTP {r.status_code}: {r.text[:300]}")
         return r.json()
     raise Exception(f"Coinalyze {path}: rate-limit dopo {max_retries} tentativi")
+
+
+# === Binance Futures public data: Long/Short Ratio ===
+# Coinalyze NON espone il ratio dei "top trader" (solo un ratio aggregato `r`).
+# Binance lo pubblica gratis (senza API key): Top Trader (per posizioni) + Global (per account).
+BINANCE_FAPI = "https://fapi.binance.com"
+
+
+def binance_get(path, params, max_retries=3):
+    url = f"{BINANCE_FAPI}{path}"
+    for attempt in range(max_retries):
+        try:
+            r = requests.get(url, params=params, timeout=HTTP_TIMEOUT)
+        except Exception:
+            if attempt == max_retries - 1:
+                raise
+            time.sleep(2)
+            continue
+        if r.status_code in (429, 418):
+            time.sleep(min(2 ** attempt + 2, 30))
+            continue
+        if r.status_code != 200:
+            raise Exception(f"Binance {path} HTTP {r.status_code}: {r.text[:160]}")
+        return r.json()
+    raise Exception(f"Binance {path}: troppi tentativi")
+
+
+def _binance_last_lsr(resp):
+    if isinstance(resp, list) and resp:
+        v = resp[-1].get("longShortRatio")
+        try:
+            return float(v) if v is not None else None
+        except (TypeError, ValueError):
+            return None
+    return None
+
+
+def fetch_binance_lsr(assets):
+    """Restituisce {asset_id: {"top": float|None, "global": float|None}}.
+    Top  = Top Trader Long/Short Ratio (per posizioni).
+    Global = Global Long/Short Account Ratio.
+    Gli asset senza simbolo Binance (es. KAS) o non quotati vengono saltati."""
+    out = {}
+    syms = [(a["id"], a.get("binance")) for a in assets if a.get("binance")]
+    print(f"[INFO] Binance L/S ratio (top+global) · {len(syms)} simboli", flush=True)
+    for aid, bsym in syms:
+        top = glob = None
+        try:
+            top = _binance_last_lsr(binance_get(
+                "/futures/data/topLongShortPositionRatio",
+                {"symbol": bsym, "period": "4h", "limit": 1},
+            ))
+        except Exception as e:
+            print(f"  [WARN] Binance top L/S {aid} ({bsym}): {e}", flush=True)
+        try:
+            glob = _binance_last_lsr(binance_get(
+                "/futures/data/globalLongShortAccountRatio",
+                {"symbol": bsym, "period": "4h", "limit": 1},
+            ))
+        except Exception as e:
+            print(f"  [WARN] Binance global L/S {aid} ({bsym}): {e}", flush=True)
+        if top is not None or glob is not None:
+            out[aid] = {"top": top, "global": glob}
+        time.sleep(0.25)
+    return out
 
 
 def _extract_history(item):
@@ -523,6 +594,9 @@ def fetch_all_via_coinalyze():
         if batch_idx < len(batches):
             time.sleep(SLEEP_BETWEEN)
 
+    # Top/Global L/S ratio dai dati pubblici Binance (Coinalyze non ha il top-trader)
+    binance_lsr_by_id = fetch_binance_lsr(ASSETS)
+
     result = {}
     for asset in ASSETS:
         sym = asset["coinalyze"]
@@ -550,9 +624,16 @@ def fetch_all_via_coinalyze():
             price_change_24h = ((current_price - price_24h_ago) / price_24h_ago) * 100 if price_24h_ago else None
             price_change_4h = ((current_price - price_4h_ago) / price_4h_ago) * 100 if price_4h_ago else None
             funding_rate = fr_by_sym.get(sym, 0.0) * 100
-            lsr = lsr_by_sym.get(sym, {})
-            lsr_global = lsr.get("global")
-            lsr_top = lsr.get("top")
+            # L/S Top dai dati Binance; fallback al ratio aggregato Coinalyze se Binance manca
+            c_lsr = lsr_by_sym.get(sym, {})
+            b_lsr = binance_lsr_by_id.get(aid, {})
+            coinalyze_ratio = c_lsr.get("global")
+            lsr_top = b_lsr.get("top")
+            lsr_global = b_lsr.get("global")
+            if lsr_global is None:
+                lsr_global = coinalyze_ratio
+            if lsr_top is None:
+                lsr_top = coinalyze_ratio
             lsr_spread = (lsr_top - lsr_global) if (lsr_top is not None and lsr_global is not None) else None
             k4h = klines4h_by_sym.get(sym, [])
             k1d = klines1d_by_sym.get(sym, [])
