@@ -527,6 +527,27 @@ def fetch_all_via_coinalyze():
         print(f"[WARN] funding-rate fallito: {e}", flush=True)
     time.sleep(SLEEP_BETWEEN_BATCHES)
 
+    # OI corrente in tempo reale (snapshot) — più fresco delle candele orarie.
+    # Le candele 1h restano per calcolare i confronti OI 4h/24h fa.
+    oi_now_by_sym = {}
+    print(f"[INFO] Coinalyze open-interest snapshot ({len(all_assets)} simboli)", flush=True)
+    try:
+        oi_now_resp = coinalyze_get("/open-interest", {"symbols": all_symbols_csv, "convert_to_usd": "false"})
+        if isinstance(oi_now_resp, list):
+            for item in oi_now_resp:
+                sym = _symbol_of(item)
+                if not sym:
+                    continue
+                val = item.get("value")
+                try:
+                    if val is not None:
+                        oi_now_by_sym[sym] = float(val)
+                except (TypeError, ValueError):
+                    pass
+    except Exception as e:
+        print(f"[WARN] open-interest snapshot fallito: {e}", flush=True)
+    time.sleep(SLEEP_BETWEEN_BATCHES)
+
     lsr_by_sym = {}
     lsr_batches = list(_chunks(all_assets, BATCH_SIZE))
     print(f"[INFO] Coinalyze L/S top traders · {len(lsr_batches)} batch", flush=True)
@@ -643,7 +664,9 @@ def fetch_all_via_coinalyze():
             def _close(c):
                 return float(c.get("c", c.get("close", 0)))
 
-            current_oi = _close(oi_sorted[-1])
+            # OI corrente: preferisci lo snapshot real-time; fallback all'ultima candela 1h
+            snap_oi = oi_now_by_sym.get(sym)
+            current_oi = snap_oi if snap_oi is not None else _close(oi_sorted[-1])
             oi_24h_ago = _close(oi_sorted[0])
             oi_4h_ago = _close(oi_sorted[max(0, len(oi_sorted) - 5)])
             current_price = _close(px_sorted[-1])
