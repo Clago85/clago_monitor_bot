@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OI Monitor — Coinalyze + tier system + EMA 8/12 + Signal 4h per tier + pending alerts."""
+"""OI Monitor — Coinalyze + tier system + EMA 12/50 + scoring pesato + pending alerts."""
 
 import os
 import json
@@ -53,6 +53,10 @@ ASSETS = [
     {"id": "ALGO", "coinalyze": "ALGOUSDT_PERP.A", "binance": "ALGOUSDT"},
     {"id": "APT", "coinalyze": "APTUSDT_PERP.A", "binance": "APTUSDT"},
     {"id": "FARTCOIN", "coinalyze": "FARTCOINUSDT_PERP.A", "binance": "FARTCOINUSDT"},
+    # BGB: quotato a futures SOLO su Bitget (non su Binance/Bybit). Il simbolo Coinalyze
+    # del mercato Bitget va verificato al primo run: se appare "BGB: dati assenti" nel log,
+    # correggere il suffisso exchange qui sotto. binance=None così l'HTML non tenta il live.
+    {"id": "BGB", "coinalyze": "BGBUSDT_PERP.A", "binance": None},
 ]
 
 T = {
@@ -76,8 +80,8 @@ T = {
     "sig_oi24_move": 2.0,  # oi divergenza min su 24h
 }
 
-EMA_FAST_4H = 8
-EMA_SLOW_4H = 12
+EMA_FAST_4H = 12
+EMA_SLOW_4H = 50
 EMA_MACRO_1D = 200
 
 # === SISTEMA A TIER: ogni asset appartiene a una categoria con soglie diverse ===
@@ -304,16 +308,9 @@ def compute_trend(klines4h, klines1d, current_price):
     ema_slow = compute_ema(closes4h, EMA_SLOW_4H)
     if ema_fast is None or ema_slow is None:
         return None
-    ema_macro = None
-    ema_macro_period = None
-    if klines1d and len(klines1d) >= EMA_MACRO_1D:
-        closes1d = [_kline_val(k, "c") for k in klines1d]
-        ema_macro = compute_ema(closes1d, EMA_MACRO_1D)
-        ema_macro_period = EMA_MACRO_1D
-    elif klines1d and len(klines1d) >= 50:
-        closes1d = [_kline_val(k, "c") for k in klines1d]
-        ema_macro = compute_ema(closes1d, 50)
-        ema_macro_period = 50
+    # Macro = EMA lenta sul 4h (50). Niente più EMA 200 su 1d: troppo lenta.
+    ema_macro = ema_slow
+    ema_macro_period = EMA_SLOW_4H
     fast_vs_slow = ema_fast > ema_slow
     above_macro = (current_price > ema_macro) if ema_macro else None
     if fast_vs_slow and above_macro is True:
@@ -861,55 +858,104 @@ def compute_action(bias, signal_4h):
     return ("NEUTRAL", "weak")
 
 
-def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc, current_price):
+# Pesi dei fattori di confluenza (più alto = più importante per validare l'azione).
+# Logica: si entra CON il trend, confermato da OI e volume; funding e L/S agiscono
+# da filtro contrarian agli estremi (folla troppo sbilanciata = rischio); la struttura
+# (POC/FVG) misura la qualità dell'ingresso.
+CONF_WEIGHTS = {
+    "trend": 3,    # direzione EMA 12/50 sul 4h: non andare controtrend
+    "oi": 3,       # OI in espansione = convinzione dietro il movimento
+    "obv": 2,      # volume che conferma la spinta
+    "poc": 2,      # posizione vs POC (volume profile)
+    "funding": 2,  # funding estremo penalizza l'ingresso (contrarian)
+    "fvg": 1,      # gap di prezzo a favore
+    "lsr": 1,      # long/short ratio (contrarian); manca su alcuni asset
+}
+
+
+def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
+                                   current_price, oi_change_4h=None,
+                                   funding=None, lsr=None, thresholds=None):
+    """Confluenza PESATA: ogni fattore contribuisce con il suo peso se è d'accordo
+    con la direzione. La forza dipende dalla frazione di peso a favore (score/total).
+    I fattori mancanti vengono esclusi dal totale, così non penalizzano a vuoto."""
     base_action, _ = compute_action(bias, signal_4h)
     if base_action == "NEUTRAL":
         return ("NEUTRAL", "weak", 0, 0)
     direction = base_action
-    score = 0
-    total = 0
+    t = thresholds or T
+    W = CONF_WEIGHTS
+    score = 0.0
+    total = 0.0
+
+    # 1) Trend EMA 12/50 (4h)
     if trend and trend.get("label"):
-        total += 1
+        total += W["trend"]
         if direction == "LONG" and trend["label"] in ("TREND UP", "PULLBACK UP"):
-            score += 1
+            score += W["trend"]
         elif direction == "SHORT" and trend["label"] in ("TREND DOWN", "PULLBACK DOWN"):
-            score += 1
-    if trend and trend.get("aboveMacro") is not None:
-        total += 1
-        if direction == "LONG" and trend["aboveMacro"]:
-            score += 1
-        elif direction == "SHORT" and not trend["aboveMacro"]:
-            score += 1
+            score += W["trend"]
+
+    # 2) Open Interest: espansione = convinzione dietro il movimento (vale entrambe le direzioni)
+    if oi_change_4h is not None:
+        total += W["oi"]
+        if oi_change_4h > t.get("sig_oi_move", 1.5):
+            score += W["oi"]
+
+    # 3) OBV / volume
     if obv:
-        total += 1
+        total += W["obv"]
         if direction == "LONG" and obv.get("direction", 0) == 1:
-            score += 1
+            score += W["obv"]
         elif direction == "SHORT" and obv.get("direction", 0) == -1:
-            score += 1
-    if fvg and (fvg.get("above") or fvg.get("below")):
-        total += 1
-        if direction == "LONG" and fvg.get("below"):
-            score += 1
-        elif direction == "SHORT" and fvg.get("above"):
-            score += 1
+            score += W["obv"]
+
+    # 4) POC / struttura
     if poc and poc.get("poc") and current_price:
-        total += 1
+        total += W["poc"]
         if direction == "LONG" and current_price > poc["poc"]:
-            score += 1
+            score += W["poc"]
         elif direction == "SHORT" and current_price < poc["poc"]:
-            score += 1
+            score += W["poc"]
+
+    # 5) Funding (contrarian): funding molto alto penalizza i LONG, molto negativo gli SHORT
+    if funding is not None:
+        total += W["funding"]
+        if direction == "LONG" and funding <= t.get("funding_high", 0.05):
+            score += W["funding"]
+        elif direction == "SHORT" and funding >= t.get("funding_negative", -0.01):
+            score += W["funding"]
+
+    # 6) FVG: gap a favore (sotto per LONG = supporto, sopra per SHORT = resistenza/target)
+    if fvg and (fvg.get("above") or fvg.get("below")):
+        total += W["fvg"]
+        if direction == "LONG" and fvg.get("below"):
+            score += W["fvg"]
+        elif direction == "SHORT" and fvg.get("above"):
+            score += W["fvg"]
+
+    # 7) L/S ratio (contrarian): troppi long = rischio per un LONG, e viceversa
+    if lsr is not None:
+        total += W["lsr"]
+        if direction == "LONG" and lsr < 1.8:
+            score += W["lsr"]
+        elif direction == "SHORT" and lsr > 0.6:
+            score += W["lsr"]
+
     if total == 0:
         _, base_strength = compute_action(bias, signal_4h)
         return (direction, base_strength, 0, 0)
-    if score >= 5 and total >= 5:
+
+    frac = score / total
+    if frac >= 0.85:
         strength = "full"
-    elif score >= 4:
+    elif frac >= 0.70:
         strength = "strong"
-    elif score >= 3:
+    elif frac >= 0.55:
         strength = "moderate"
     else:
-        return ("NEUTRAL", "weak", score, total)
-    return (direction, strength, score, total)
+        return ("NEUTRAL", "weak", round(score), round(total))
+    return (direction, strength, round(score), round(total))
 
 
 def should_notify(prev_label, curr_label):
@@ -1001,7 +1047,7 @@ def format_transition_message(t, other_active_state=None):
     if trend and trend.get("label"):
         tech_block += f"<b>Trend:</b> {trend['label']}"
         if trend.get("emaMacroPeriod"):
-            tech_block += f" (EMA{trend['emaMacroPeriod']} 1D)"
+            tech_block += f" (EMA{trend['emaMacroPeriod']} 4h)"
         tech_block += "\n"
     if obv:
         obv_dir = "↑" if obv.get("direction", 0) == 1 else "↓" if obv.get("direction", 0) == -1 else "→"
@@ -1025,7 +1071,7 @@ def format_transition_message(t, other_active_state=None):
         score = confluence.get("score", 0)
         total = confluence.get("total", 0)
         if total > 0:
-            tech_block += f"<b>📊 Confluenza:</b> {score}/{total} indicatori d'accordo\n"
+            tech_block += f"<b>📊 Confluenza:</b> {score}/{total} (peso a favore)\n"
     msg = (
         f"{emoji} <b>{curr_a} {strength_text}</b> · <b>{asset}</b>{exhaustion_tag}\n"
         f"🕐 <b>Rilevato:</b> {now_italy_str()}\n\n"
@@ -1112,6 +1158,10 @@ def main():
                 data.get("trend"), data.get("obv"),
                 data.get("fvg"), data.get("poc"),
                 data.get("price"),
+                oi_change_4h=data.get("oiChange4h"),
+                funding=data.get("fundingRate"),
+                lsr=data.get("lsr"),
+                thresholds=thr,
             )
             curr_label = f"{action}_{strength}"
             prev_entry = last_state.get(asset_id, {})
@@ -1247,4 +1297,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-# audit history: ogni cambio di stato viene registrato in history.json (h24)
