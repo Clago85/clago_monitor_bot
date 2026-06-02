@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OI Monitor — Coinalyze + tier system + EMA 12/50 + scoring pesato + pending alerts."""
+"""OI Monitor — Coinalyze + tier system + EMA 8/12 + Signal 4h per tier + pending alerts."""
 
 import os
 import json
@@ -492,6 +492,33 @@ def compute_poc_swing(klines, current_price, lookback_bars=126):
     }
 
 
+def compute_vwap(klines, bars):
+    """VWAP (Volume Weighted Average Price) sulle ultime `bars` candele.
+    typical price = (H+L+C)/3, pesato per volume. Restituisce dict con valore e
+    posizione del prezzo corrente rispetto al VWAP (distanza % e above bool)."""
+    if not klines or len(klines) < 2:
+        return None
+    tail = klines[-bars:] if len(klines) >= bars else klines
+    num = 0.0
+    den = 0.0
+    for k in tail:
+        h = _kline_val(k, "h")
+        l = _kline_val(k, "l")
+        c = _kline_val(k, "c")
+        v = _kline_val(k, "v")
+        if v <= 0:
+            continue
+        tp = (h + l + c) / 3.0
+        num += tp * v
+        den += v
+    if den <= 0:
+        return None
+    vwap = num / den
+    last_close = _kline_val(tail[-1], "c")
+    dist = ((last_close - vwap) / vwap) * 100 if vwap else 0
+    return {"vwap": vwap, "distance": dist, "above": last_close > vwap, "bars": len(tail)}
+
+
 def fetch_all_via_coinalyze():
     if not COINALYZE_KEY:
         raise Exception("COINALYZE_API_KEY non configurato nei secrets")
@@ -686,6 +713,9 @@ def fetch_all_via_coinalyze():
             rvol = compute_rvol(k4h, lookback=20)
             fvg = detect_fvgs(k4h, current_price)
             poc = compute_poc_swing(k4h, current_price, lookback_bars=126)
+            # VWAP: settimanale (~42 barre 4h = 7gg) e mensile (~180 barre = 30gg)
+            vwap_w = compute_vwap(k4h, 42)
+            vwap_m = compute_vwap(k4h, 180)
             result[aid] = {
                 "source": "Coinalyze",
                 "source_symbol": sym,
@@ -704,6 +734,8 @@ def fetch_all_via_coinalyze():
                 "rvol": rvol,
                 "fvg": fvg,
                 "poc": poc,
+                "vwapW": vwap_w,
+                "vwapM": vwap_m,
             }
         except Exception as e:
             result[aid] = {"error": f"parse error: {e}"}
@@ -867,22 +899,38 @@ CONF_WEIGHTS = {
     "oi": 3,       # OI in espansione = convinzione dietro il movimento
     "obv": 2,      # volume che conferma la spinta
     "poc": 2,      # posizione vs POC (volume profile)
+    "vwap_w": 2,   # prezzo vs VWAP settimanale (fair value istituzionale, swing)
     "funding": 2,  # funding estremo penalizza l'ingresso (contrarian)
     "fvg": 1,      # gap di prezzo a favore
     "lsr": 1,      # long/short ratio (contrarian); manca su alcuni asset
+    "vwap_m": 1,   # prezzo vs VWAP mensile (filtro trend macro)
 }
 
 
 def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
                                    current_price, oi_change_4h=None,
-                                   funding=None, lsr=None, thresholds=None):
+                                   funding=None, lsr=None, thresholds=None,
+                                   vwap_w=None, vwap_m=None):
     """Confluenza PESATA: ogni fattore contribuisce con il suo peso se è d'accordo
     con la direzione. La forza dipende dalla frazione di peso a favore (score/total).
     I fattori mancanti vengono esclusi dal totale, così non penalizzano a vuoto."""
     base_action, _ = compute_action(bias, signal_4h)
-    if base_action == "NEUTRAL":
-        return ("NEUTRAL", "weak", 0, 0)
     direction = base_action
+    trend_generated = False
+    # TREND-FOLLOWING: se la matrice Bias×Signal è NEUTRAL ma il trend 4h è netto
+    # (EMA12 vs EMA50 + prezzo oltre EMA50), genera comunque la direzione. Così si
+    # entra nei trend lunghi e puliti (es. BTC giù da metà maggio) senza aspettare
+    # lo spike di OI. La forza la decide poi la confluenza (moderate/strong/full).
+    if direction == "NEUTRAL":
+        tlabel = trend.get("label") if trend else None
+        if tlabel == "TREND UP":
+            direction = "LONG"
+            trend_generated = True
+        elif tlabel == "TREND DOWN":
+            direction = "SHORT"
+            trend_generated = True
+        else:
+            return ("NEUTRAL", "weak", 0, 0)
     t = thresholds or T
     W = CONF_WEIGHTS
     score = 0.0
@@ -918,6 +966,22 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         elif direction == "SHORT" and current_price < poc["poc"]:
             score += W["poc"]
 
+    # 4b) VWAP settimanale: prezzo sopra = supporta LONG, sotto = supporta SHORT
+    if vwap_w and vwap_w.get("vwap"):
+        total += W["vwap_w"]
+        if direction == "LONG" and vwap_w.get("above"):
+            score += W["vwap_w"]
+        elif direction == "SHORT" and not vwap_w.get("above"):
+            score += W["vwap_w"]
+
+    # 4c) VWAP mensile: filtro trend macro
+    if vwap_m and vwap_m.get("vwap"):
+        total += W["vwap_m"]
+        if direction == "LONG" and vwap_m.get("above"):
+            score += W["vwap_m"]
+        elif direction == "SHORT" and not vwap_m.get("above"):
+            score += W["vwap_m"]
+
     # 5) Funding (contrarian): funding molto alto penalizza i LONG, molto negativo gli SHORT
     if funding is not None:
         total += W["funding"]
@@ -947,14 +1011,20 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         return (direction, base_strength, 0, 0)
 
     frac = score / total
-    if frac >= 0.85:
-        strength = "full"
-    elif frac >= 0.70:
-        strength = "strong"
-    elif frac >= 0.55:
-        strength = "moderate"
+    if trend_generated:
+        # Segnale nato dal trend (senza conferma bias/OI): solo MODERATE o STRONG.
+        # Niente "full" (riservato al setup completo bias+signal) e niente NEUTRAL:
+        # se il trend è netto il segnale c'è, la confluenza ne decide solo l'intensità.
+        strength = "strong" if frac >= 0.70 else "moderate"
     else:
-        return ("NEUTRAL", "weak", round(score), round(total))
+        if frac >= 0.85:
+            strength = "full"
+        elif frac >= 0.70:
+            strength = "strong"
+        elif frac >= 0.55:
+            strength = "moderate"
+        else:
+            return ("NEUTRAL", "weak", round(score), round(total))
     return (direction, strength, round(score), round(total))
 
 
@@ -1047,7 +1117,7 @@ def format_transition_message(t, other_active_state=None):
     if trend and trend.get("label"):
         tech_block += f"<b>Trend:</b> {trend['label']}"
         if trend.get("emaMacroPeriod"):
-            tech_block += f" (EMA{trend['emaMacroPeriod']} 4h)"
+            tech_block += f" (EMA{trend['emaMacroPeriod']} 1D)"
         tech_block += "\n"
     if obv:
         obv_dir = "↑" if obv.get("direction", 0) == 1 else "↓" if obv.get("direction", 0) == -1 else "→"
@@ -1066,12 +1136,21 @@ def format_transition_message(t, other_active_state=None):
     if poc and poc.get("poc"):
         in_va = " (in value area)" if poc.get("inValueArea") else ""
         tech_block += f"<b>POC:</b> {fmt_price(poc['poc'])} · Δ {fmt_pct(poc.get('distance'), 1)}{in_va}\n"
+    vwap_w = d.get("vwapW")
+    vwap_m = d.get("vwapM")
+    if vwap_w and vwap_w.get("vwap"):
+        pos_w = "sopra" if vwap_w.get("above") else "sotto"
+        vwm_txt = ""
+        if vwap_m and vwap_m.get("vwap"):
+            pos_m = "sopra" if vwap_m.get("above") else "sotto"
+            vwm_txt = f" · mens. {pos_m}"
+        tech_block += f"<b>VWAP sett.:</b> {fmt_price(vwap_w['vwap'])} · prezzo {pos_w} ({fmt_pct(vwap_w.get('distance'), 1)}){vwm_txt}\n"
     confluence = t.get("confluence")
     if confluence:
         score = confluence.get("score", 0)
         total = confluence.get("total", 0)
         if total > 0:
-            tech_block += f"<b>📊 Confluenza:</b> {score}/{total} (peso a favore)\n"
+            tech_block += f"<b>📊 Confluenza:</b> {score}/{total} indicatori d'accordo\n"
     msg = (
         f"{emoji} <b>{curr_a} {strength_text}</b> · <b>{asset}</b>{exhaustion_tag}\n"
         f"🕐 <b>Rilevato:</b> {now_italy_str()}\n\n"
@@ -1162,6 +1241,8 @@ def main():
                 funding=data.get("fundingRate"),
                 lsr=data.get("lsr"),
                 thresholds=thr,
+                vwap_w=data.get("vwapW"),
+                vwap_m=data.get("vwapM"),
             )
             curr_label = f"{action}_{strength}"
             prev_entry = last_state.get(asset_id, {})
@@ -1235,6 +1316,8 @@ def main():
                     "rvol": data.get("rvol"),
                     "fvg": data.get("fvg"),
                     "poc": data.get("poc"),
+                    "vwapW": data.get("vwapW"),
+                    "vwapM": data.get("vwapM"),
                 },
             }
             flag = " *" if transition_logged else ""
@@ -1297,3 +1380,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# audit history: ogni cambio di stato viene registrato in history.json (h24)
