@@ -900,10 +900,11 @@ CONF_WEIGHTS = {
     "obv": 2,      # volume che conferma la spinta
     "poc": 2,      # posizione vs POC (volume profile)
     "vwap_w": 2,   # prezzo vs VWAP settimanale (fair value istituzionale, swing)
-    "funding": 2,  # funding estremo penalizza l'ingresso (contrarian)
     "fvg": 1,      # gap di prezzo a favore
-    "lsr": 1,      # long/short ratio (contrarian); manca su alcuni asset
     "vwap_m": 1,   # prezzo vs VWAP mensile (filtro trend macro)
+    # --- I due sotto NON danno bonus: sono PENALITÀ contrarian agli estremi ---
+    "funding": 2,  # PENALITÀ se funding bollente/gelido contro il trade
+    "lsr": 1,      # PENALITÀ se L/S retail troppo carico nel verso del trade
 }
 
 
@@ -914,23 +915,35 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
     """Confluenza PESATA: ogni fattore contribuisce con il suo peso se è d'accordo
     con la direzione. La forza dipende dalla frazione di peso a favore (score/total).
     I fattori mancanti vengono esclusi dal totale, così non penalizzano a vuoto."""
-    base_action, _ = compute_action(bias, signal_4h)
-    direction = base_action
+    # === GERARCHIA DELLA DIREZIONE (ottimizzata per swing 4h) ===
+    # MOTORE PRIMARIO = TREND. Su uno swing la direzione la dà il trend 4h (EMA 12/50),
+    # non l'OI: così si entra presto sui trend puliti senza aspettare che il bias 24h
+    # diventi "estremo". L'OI-matrix resta come SECONDO motore per i casi in cui il
+    # trend è piatto (range/CHOP) o per cogliere le inversioni (REVERSAL contro-trend).
+    matrix_action, _ = compute_action(bias, signal_4h)
+    tlabel = trend.get("label") if trend else None
+    direction = "NEUTRAL"
     trend_generated = False
-    # TREND-FOLLOWING: se la matrice Bias×Signal è NEUTRAL ma il trend 4h è netto
-    # (EMA12 vs EMA50 + prezzo oltre EMA50), genera comunque la direzione. Così si
-    # entra nei trend lunghi e puliti (es. BTC giù da metà maggio) senza aspettare
-    # lo spike di OI. La forza la decide poi la confluenza (moderate/strong/full).
-    if direction == "NEUTRAL":
-        tlabel = trend.get("label") if trend else None
-        if tlabel == "TREND UP":
-            direction = "LONG"
-            trend_generated = True
-        elif tlabel == "TREND DOWN":
+
+    if tlabel == "TREND UP":
+        direction = "LONG"
+        trend_generated = True
+        # Eccezione: se la matrice grida un'inversione opposta forte, lasciala vincere
+        if matrix_action == "SHORT" and signal_4h in ("REVERSAL", "OI GIRA"):
             direction = "SHORT"
-            trend_generated = True
-        else:
-            return ("NEUTRAL", "weak", 0, 0)
+            trend_generated = False
+    elif tlabel == "TREND DOWN":
+        direction = "SHORT"
+        trend_generated = True
+        if matrix_action == "LONG" and signal_4h in ("REVERSAL", "OI GIRA"):
+            direction = "LONG"
+            trend_generated = False
+    else:
+        # Trend piatto (CHOP/PULLBACK): si affida alla matrice OI (range, build-up, ecc.)
+        direction = matrix_action
+
+    if direction == "NEUTRAL":
+        return ("NEUTRAL", "weak", 0, 0)
     t = thresholds or T
     W = CONF_WEIGHTS
     score = 0.0
@@ -982,14 +995,6 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         elif direction == "SHORT" and not vwap_m.get("above"):
             score += W["vwap_m"]
 
-    # 5) Funding (contrarian): funding molto alto penalizza i LONG, molto negativo gli SHORT
-    if funding is not None:
-        total += W["funding"]
-        if direction == "LONG" and funding <= t.get("funding_high", 0.05):
-            score += W["funding"]
-        elif direction == "SHORT" and funding >= t.get("funding_negative", -0.01):
-            score += W["funding"]
-
     # 6) FVG: gap a favore (sotto per LONG = supporto, sopra per SHORT = resistenza/target)
     if fvg and (fvg.get("above") or fvg.get("below")):
         total += W["fvg"]
@@ -998,13 +1003,27 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         elif direction == "SHORT" and fvg.get("above"):
             score += W["fvg"]
 
-    # 7) L/S ratio (contrarian): troppi long = rischio per un LONG, e viceversa
+    # === FILTRI CONTRARIAN (solo PENALITÀ agli estremi) ===
+    # Funding e L/S NON danno bonus quando sono normali (non entrano in `total`):
+    # restano neutri. Tolgono punti SOLO quando sono a un estremo CONTRO il trade,
+    # perché segnalano folla troppo sbilanciata = rischio washout/squeeze.
+    penalty = 0.0
+
+    # Funding estremo contro il trade
+    if funding is not None:
+        if direction == "LONG" and funding > t.get("funding_very_high", 0.08):
+            penalty += W["funding"]   # long su funding bollente = rischioso
+        elif direction == "SHORT" and funding < t.get("funding_very_neg", -0.03):
+            penalty += W["funding"]   # short su funding molto negativo = rischio squeeze
+
+    # L/S retail estremo nel verso del trade (contrarian: folla troppo carica)
     if lsr is not None:
-        total += W["lsr"]
-        if direction == "LONG" and lsr < 1.8:
-            score += W["lsr"]
-        elif direction == "SHORT" and lsr > 0.6:
-            score += W["lsr"]
+        if direction == "LONG" and lsr > 2.0:
+            penalty += W["lsr"]       # troppi long retail = rischio per un nuovo long
+        elif direction == "SHORT" and lsr < 0.5:
+            penalty += W["lsr"]       # troppi short retail = rischio per un nuovo short
+
+    score = max(0.0, score - penalty)
 
     if total == 0:
         _, base_strength = compute_action(bias, signal_4h)
