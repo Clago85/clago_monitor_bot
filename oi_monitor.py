@@ -519,6 +519,42 @@ def compute_vwap(klines, bars):
     return {"vwap": vwap, "distance": dist, "above": last_close > vwap, "bars": len(tail)}
 
 
+def compute_delta(klines, bars=6):
+    """Delta REALE compratori-venditori dalle candele Coinalyze.
+    Coinalyze OHLCV espone 'v' (volume totale) e 'bv' (buy volume).
+    delta = bv - (v - bv) = 2*bv - v.  >0 = dominano i compratori.
+    Calcola: delta ultima candela, somma delta su `bars`, e il rapporto
+    cumulato (buy/sell) per leggere lo sbilanciamento recente.
+    Ritorna None se 'bv' non è disponibile (alcuni mercati minori)."""
+    if not klines or len(klines) < 2:
+        return None
+    tail = klines[-bars:] if len(klines) >= bars else klines
+    have_bv = any(("bv" in k and k.get("bv") is not None) for k in tail)
+    if not have_bv:
+        return None
+    tot_buy = 0.0
+    tot_sell = 0.0
+    last_delta = 0.0
+    for i, k in enumerate(tail):
+        v = _kline_val(k, "v")
+        bv = _kline_val(k, "bv")
+        sv = max(0.0, v - bv)
+        tot_buy += bv
+        tot_sell += sv
+        if i == len(tail) - 1:
+            last_delta = bv - sv
+    cum_delta = tot_buy - tot_sell
+    denom = tot_buy + tot_sell
+    # ratio normalizzato in [-1, +1]: +1 tutto buy, -1 tutto sell
+    ratio = (cum_delta / denom) if denom > 0 else 0.0
+    return {
+        "lastDelta": last_delta,      # delta ultima candela 4h
+        "cumDelta": cum_delta,        # delta cumulato su `bars`
+        "ratio": ratio,               # sbilanciamento normalizzato [-1,+1]
+        "bars": len(tail),
+    }
+
+
 def fetch_all_via_coinalyze():
     if not COINALYZE_KEY:
         raise Exception("COINALYZE_API_KEY non configurato nei secrets")
@@ -716,6 +752,8 @@ def fetch_all_via_coinalyze():
             # VWAP: settimanale (~42 barre 4h = 7gg) e mensile (~180 barre = 30gg)
             vwap_w = compute_vwap(k4h, 42)
             vwap_m = compute_vwap(k4h, 180)
+            # Delta reale buy/sell (da campo bv di Coinalyze), ultime 6 candele 4h (~1g)
+            delta = compute_delta(k4h, bars=6)
             result[aid] = {
                 "source": "Coinalyze",
                 "source_symbol": sym,
@@ -736,6 +774,7 @@ def fetch_all_via_coinalyze():
                 "poc": poc,
                 "vwapW": vwap_w,
                 "vwapM": vwap_m,
+                "delta": delta,
             }
         except Exception as e:
             result[aid] = {"error": f"parse error: {e}"}
@@ -900,6 +939,7 @@ CONF_WEIGHTS = {
     "obv": 2,      # volume che conferma la spinta
     "poc": 2,      # posizione vs POC (volume profile)
     "vwap_w": 2,   # prezzo vs VWAP settimanale (fair value istituzionale, swing)
+    "delta": 2,    # delta reale buy/sell (ibrido: momentum a favore OPPURE assorbimento a livello)
     "fvg": 1,      # gap di prezzo a favore
     "vwap_m": 1,   # prezzo vs VWAP mensile (filtro trend macro)
     # --- I due sotto NON danno bonus: sono PENALITÀ contrarian agli estremi ---
@@ -911,7 +951,7 @@ CONF_WEIGHTS = {
 def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
                                    current_price, oi_change_4h=None,
                                    funding=None, lsr=None, thresholds=None,
-                                   vwap_w=None, vwap_m=None):
+                                   vwap_w=None, vwap_m=None, delta=None):
     """Confluenza PESATA: ogni fattore contribuisce con il suo peso se è d'accordo
     con la direzione. La forza dipende dalla frazione di peso a favore (score/total).
     I fattori mancanti vengono esclusi dal totale, così non penalizzano a vuoto."""
@@ -994,6 +1034,29 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
             score += W["vwap_m"]
         elif direction == "SHORT" and not vwap_m.get("above"):
             score += W["vwap_m"]
+
+    # 4d) DELTA reale (IBRIDO, peso 2): dà il punto se UNA delle due:
+    #     (a) momentum: delta a favore della direzione (buy per LONG, sell per SHORT)
+    #     (b) assorbimento a un livello chiave: delta CONTRO il prezzo ma il prezzo regge
+    #         (es. forte vendita ma prezzo non scende vicino a VWAP/POC = assorbimento buy)
+    if delta and delta.get("ratio") is not None:
+        total += W["delta"]
+        dr = delta["ratio"]               # [-1, +1]: >0 dominano i compratori
+        # momentum a favore
+        momentum_ok = (direction == "LONG" and dr > 0.10) or (direction == "SHORT" and dr < -0.10)
+        # assorbimento a livello: vicino a VWAP settimanale o POC
+        near_level = False
+        if vwap_w and vwap_w.get("vwap") and current_price:
+            near_level = abs(current_price - vwap_w["vwap"]) / vwap_w["vwap"] <= 0.01
+        if poc and poc.get("poc") and current_price and not near_level:
+            near_level = abs(current_price - poc["poc"]) / poc["poc"] <= 0.01
+        # assorbimento: a un livello, delta forte CONTRO la direzione = chi difende il livello
+        # (per un LONG: vendite forti assorbite => dr molto negativo ma siamo al supporto)
+        absorption_ok = near_level and (
+            (direction == "LONG" and dr < -0.25) or (direction == "SHORT" and dr > 0.25)
+        )
+        if momentum_ok or absorption_ok:
+            score += W["delta"]
 
     # 6) FVG: gap a favore (sotto per LONG = supporto, sopra per SHORT = resistenza/target)
     if fvg and (fvg.get("above") or fvg.get("below")):
@@ -1164,6 +1227,11 @@ def format_transition_message(t, other_active_state=None):
             pos_m = "sopra" if vwap_m.get("above") else "sotto"
             vwm_txt = f" · mens. {pos_m}"
         tech_block += f"<b>VWAP sett.:</b> {fmt_price(vwap_w['vwap'])} · prezzo {pos_w} ({fmt_pct(vwap_w.get('distance'), 1)}){vwm_txt}\n"
+    delta = d.get("delta")
+    if delta and delta.get("ratio") is not None:
+        r = delta["ratio"]
+        dlabel = "compratori" if r > 0 else "venditori"
+        tech_block += f"<b>Delta 1g:</b> {('+' if r>=0 else '')}{r*100:.0f}% ({dlabel})\n"
     confluence = t.get("confluence")
     if confluence:
         score = confluence.get("score", 0)
@@ -1262,6 +1330,7 @@ def main():
                 thresholds=thr,
                 vwap_w=data.get("vwapW"),
                 vwap_m=data.get("vwapM"),
+                delta=data.get("delta"),
             )
             curr_label = f"{action}_{strength}"
             prev_entry = last_state.get(asset_id, {})
@@ -1337,6 +1406,7 @@ def main():
                     "poc": data.get("poc"),
                     "vwapW": data.get("vwapW"),
                     "vwapM": data.get("vwapM"),
+                    "delta": data.get("delta"),
                 },
             }
             flag = " *" if transition_logged else ""
