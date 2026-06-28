@@ -939,7 +939,7 @@ CONF_WEIGHTS = {
     "obv": 2,      # volume che conferma la spinta
     "poc": 2,      # posizione vs POC (volume profile)
     "vwap_w": 2,   # prezzo vs VWAP settimanale (fair value istituzionale, swing)
-    "delta": 2,    # delta reale buy/sell (ibrido: momentum a favore OPPURE assorbimento a livello)
+    "delta": 3,    # delta reale buy/sell — ANTICIPATORE (si muove per primo): peso alto per reattività
     "fvg": 1,      # gap di prezzo a favore
     "vwap_m": 1,   # prezzo vs VWAP mensile (filtro trend macro)
     # --- I due sotto NON danno bonus: sono PENALITÀ contrarian agli estremi ---
@@ -1093,17 +1093,18 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         return (direction, base_strength, 0, 0)
 
     frac = score / total
+    # Soglie reattive: abbassate per anticipare il passaggio a 'forte'.
+    # (full 0.82, strong 0.66, moderate 0.52). Combinate col peso alto del delta
+    # rendono il segnale forte più tempestivo senza allargarlo a mosse deboli.
     if trend_generated:
         # Segnale nato dal trend (senza conferma bias/OI): solo MODERATE o STRONG.
-        # Niente "full" (riservato al setup completo bias+signal) e niente NEUTRAL:
-        # se il trend è netto il segnale c'è, la confluenza ne decide solo l'intensità.
-        strength = "strong" if frac >= 0.70 else "moderate"
+        strength = "strong" if frac >= 0.66 else "moderate"
     else:
-        if frac >= 0.85:
+        if frac >= 0.82:
             strength = "full"
-        elif frac >= 0.70:
+        elif frac >= 0.66:
             strength = "strong"
-        elif frac >= 0.55:
+        elif frac >= 0.52:
             strength = "moderate"
         else:
             return ("NEUTRAL", "weak", round(score), round(total))
