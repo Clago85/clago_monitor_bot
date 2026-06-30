@@ -688,25 +688,10 @@ def fetch_all_via_coinalyze():
         if batch_idx < len(batches):
             time.sleep(SLEEP_BETWEEN)
 
-    time.sleep(SLEEP_BETWEEN_BATCHES)
+    # NB: le candele giornaliere (1d) NON vengono più scaricate. La EMA macro ora è la
+    # EMA 50 sul 4h (non più EMA 200 daily), quindi i dati 1d erano inutilizzati.
+    # Rimuoverli risparmia ~31 chiamate API e ~1 min per run (minuti GitHub Actions).
     klines1d_by_sym = {}
-    print(f"[INFO] Coinalyze klines 1d · {len(batches)} batch", flush=True)
-    from_ts_1d = now - 250 * 86400
-    for batch_idx, batch in enumerate(batches, 1):
-        sym_csv = ",".join(a["coinalyze"] for a in batch)
-        try:
-            resp = coinalyze_get(
-                "/ohlcv-history",
-                {"symbols": sym_csv, "interval": "daily", "from": from_ts_1d, "to": now},
-            )
-            for item in (resp or []):
-                sym = _symbol_of(item)
-                if sym:
-                    klines1d_by_sym[sym] = sorted(_extract_history(item), key=lambda x: x.get("t", 0))
-        except Exception as e:
-            print(f"  [WARN] klines 1d batch {batch_idx}: {e}", flush=True)
-        if batch_idx < len(batches):
-            time.sleep(SLEEP_BETWEEN)
 
     result = {}
     for asset in ASSETS:
