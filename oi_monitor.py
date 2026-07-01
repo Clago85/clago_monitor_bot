@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OI Monitor — Coinalyze + tier + EMA 12/50 + scoring pesato + delta + filtri contro-trend."""
+"""OI Monitor — Coinalyze + tier + EMA 12/50 + scoring pesato + delta + filtri."""
 
 import os
 import json
@@ -53,7 +53,7 @@ ASSETS = [
     {"id": "ALGO", "coinalyze": "ALGOUSDT_PERP.A", "binance": "ALGOUSDT"},
     {"id": "APT", "coinalyze": "APTUSDT_PERP.A", "binance": "APTUSDT"},
     {"id": "FARTCOIN", "coinalyze": "FARTCOINUSDT_PERP.A", "binance": "FARTCOINUSDT"},
-    # BGB: futures solo su Bitget. Se log dice "dati assenti", correggere suffisso exchange.
+    # BGB: futures solo su Bitget. Se log dice "dati assenti", correggere suffisso.
     {"id": "BGB", "coinalyze": "BGBUSDT_PERP.A", "binance": None},
 ]
 
@@ -491,7 +491,6 @@ def compute_vwap(klines, bars):
 
 
 def compute_delta(klines, bars=3):
-    """Delta REALE buy/sell da Coinalyze (v e bv). 3 candele (~12h) = reattivo."""
     if not klines or len(klines) < 2:
         return None
     tail = klines[-bars:] if len(klines) >= bars else klines
@@ -1009,13 +1008,23 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
             strength = "moderate"
 
     # === DECLASSAMENTO PER DELTA CONTRARIO: moderate senza flusso -> NEUTRAL ===
-    # Soglia 3%: sotto il 2% è rumore, dal 3% in su è flusso reale contrario.
     if delta and delta.get("ratio") is not None:
         dr = delta["ratio"]
         delta_against = (direction == "LONG" and dr < -0.03) or \
                         (direction == "SHORT" and dr > 0.03)
         if delta_against and strength == "moderate":
             return ("NEUTRAL", "weak", round(score), round(total))
+
+    # === FRENO MOVIMENTO GIÀ ESPLOSO (anti "comprare sul massimo") ===
+    if px_change_24h is not None and delta and delta.get("ratio") is not None:
+        dr = delta["ratio"]
+        move = px_change_24h if direction == "LONG" else -px_change_24h
+        delta_confirms = (direction == "LONG" and dr > 0.10) or \
+                         (direction == "SHORT" and dr < -0.10)
+        if move > 18 and not delta_confirms:
+            return ("NEUTRAL", "weak", round(score), round(total))
+        if move > 12 and not delta_confirms and strength in ("full", "strong"):
+            strength = "moderate"
 
     return (direction, strength, round(score), round(total))
 
