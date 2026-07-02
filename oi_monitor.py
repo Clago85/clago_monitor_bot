@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OI Monitor — Coinalyze + tier + EMA 12/50 + scoring pesato + delta + filtri."""
+"""OI Monitor — Coinalyze + tier + EMA 12/50 + scoring pesato + delta + filtri + soglia min 30%."""
 
 import os
 import json
@@ -988,6 +988,12 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
 
     frac = score / total
     if trend_generated:
+        # Segnale nato dal trend (senza conferma bias/OI): solo MODERATE o STRONG.
+        # SOGLIA MINIMA 30%: un trend up/down da solo non basta. Serve almeno il 30%
+        # di confluenza (OI/volume/struttura a favore), altrimenti è un trend che sta
+        # morendo (es. APT: trend up ma OI in calo, delta piatto, 24%) -> NEUTRAL.
+        if frac < 0.30:
+            return ("NEUTRAL", "weak", round(score), round(total))
         strength = "strong" if frac >= 0.66 else "moderate"
     else:
         if frac >= 0.82:
