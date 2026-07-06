@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OI Monitor — Coinalyze + tier + EMA 12/50 + scoring pesato + delta + filtri + soglia min 30%."""
+"""OI Monitor — Coinalyze + tier + EMA 12/50 + scoring pesato + delta + filtri + performance."""
 
 import os
 import json
@@ -988,10 +988,6 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
 
     frac = score / total
     if trend_generated:
-        # Segnale nato dal trend (senza conferma bias/OI): solo MODERATE o STRONG.
-        # SOGLIA MINIMA 30%: un trend up/down da solo non basta. Serve almeno il 30%
-        # di confluenza (OI/volume/struttura a favore), altrimenti è un trend che sta
-        # morendo (es. APT: trend up ma OI in calo, delta piatto, 24%) -> NEUTRAL.
         if frac < 0.30:
             return ("NEUTRAL", "weak", round(score), round(total))
         strength = "strong" if frac >= 0.66 else "moderate"
@@ -1005,7 +1001,7 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         else:
             return ("NEUTRAL", "weak", round(score), round(total))
 
-    # === BLOCCO CONTRO-TREND (24h): niente forti contro il movimento ===
+    # BLOCCO CONTRO-TREND (24h): niente forti contro il movimento
     CT = 1.0
     if px_change_24h is not None:
         against = (direction == "SHORT" and px_change_24h > CT) or \
@@ -1013,7 +1009,7 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         if against and strength in ("full", "strong"):
             strength = "moderate"
 
-    # === DECLASSAMENTO PER DELTA CONTRARIO: moderate senza flusso -> NEUTRAL ===
+    # DECLASSAMENTO DELTA CONTRARIO: moderate senza flusso -> NEUTRAL
     if delta and delta.get("ratio") is not None:
         dr = delta["ratio"]
         delta_against = (direction == "LONG" and dr < -0.03) or \
@@ -1021,7 +1017,7 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         if delta_against and strength == "moderate":
             return ("NEUTRAL", "weak", round(score), round(total))
 
-    # === FRENO MOVIMENTO GIÀ ESPLOSO (anti "comprare sul massimo") ===
+    # FRENO MOVIMENTO GIÀ ESPLOSO (anti comprare sul massimo)
     if px_change_24h is not None and delta and delta.get("ratio") is not None:
         dr = delta["ratio"]
         move = px_change_24h if direction == "LONG" else -px_change_24h
@@ -1219,6 +1215,80 @@ def append_history(entry):
     save_json(HISTORY_FILE, history)
 
 
+PERFORMANCE_FILE = "performance.json"
+
+
+def update_performance(new_state, last_state):
+    """Traccia le performance dei segnali. performance.json ha due liste:
+      - open:   trade attivi (LONG/SHORT in corso), aggiornati a ogni run col P&L live
+      - closed: trade chiusi (tornati NEUTRAL o girati), con esito finale
+    """
+    perf = load_json(PERFORMANCE_FILE, {"open": [], "closed": []})
+    if not isinstance(perf, dict):
+        perf = {"open": [], "closed": []}
+    open_trades = perf.get("open", [])
+    closed = perf.get("closed", [])
+    now = int(time.time())
+
+    def cur_dir(aid):
+        lab = new_state.get(aid, {}).get("label", "")
+        return lab.split("_")[0] if "_" in lab else "NEUTRAL"
+
+    def cur_price(aid):
+        return new_state.get(aid, {}).get("data", {}).get("price")
+
+    still_open = []
+    open_ids = set()
+    for tr in open_trades:
+        aid = tr["asset"]
+        direction = tr["direction"]
+        p0 = tr["entry_price"]
+        pc = cur_price(aid)
+        d_now = cur_dir(aid)
+        if pc and p0:
+            chg = (pc - p0) / p0 * 100
+            favor = chg if direction == "LONG" else -chg
+            tr["last_price"] = pc
+            tr["pnl_pct"] = round(favor, 2)
+            tr["last_ts"] = now
+            tr["max_favor"] = round(max(tr.get("max_favor", favor), favor), 2)
+            tr["min_favor"] = round(min(tr.get("min_favor", favor), favor), 2)
+        if d_now == direction:
+            still_open.append(tr)
+            open_ids.add(aid)
+        else:
+            tr["close_ts"] = now
+            tr["close_price"] = pc
+            tr["duration_h"] = round((now - tr["entry_ts"]) / 3600, 1)
+            tr["result_pct"] = tr.get("pnl_pct", 0.0)
+            tr["outcome"] = "win" if tr.get("pnl_pct", 0) > 0 else "loss"
+            tr["closed_to"] = d_now
+            closed.append(tr)
+
+    for aid, s in new_state.items():
+        lab = s.get("label", "")
+        direction = lab.split("_")[0] if "_" in lab else "NEUTRAL"
+        if direction in ("LONG", "SHORT") and aid not in open_ids:
+            p0 = s.get("data", {}).get("price")
+            if p0:
+                still_open.append({
+                    "asset": aid,
+                    "direction": direction,
+                    "entry_ts": now,
+                    "entry_price": p0,
+                    "entry_strength": lab.split("_")[1] if "_" in lab else "",
+                    "last_price": p0,
+                    "pnl_pct": 0.0,
+                    "max_favor": 0.0,
+                    "min_favor": 0.0,
+                    "last_ts": now,
+                })
+                open_ids.add(aid)
+
+    closed = closed[-500:]
+    save_json(PERFORMANCE_FILE, {"open": still_open, "closed": closed})
+
+
 def main():
     started_at = datetime.now(timezone.utc)
     print(f"\n=== OI Monitor — {started_at.isoformat()} ===", flush=True)
@@ -1334,6 +1404,12 @@ def main():
             print(f"  [X] {asset_id}: exception {e}", flush=True)
 
     save_json(STATE_FILE, new_state)
+
+    # Traccia performance: apre/aggiorna/chiude i trade e calcola il P&L a favore.
+    try:
+        update_performance(new_state, last_state)
+    except Exception as e:
+        print(f"[WARN] update_performance fallito: {e}", flush=True)
 
     pending_alerts = []
     if is_first_run:
