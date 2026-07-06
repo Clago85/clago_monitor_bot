@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OI Monitor — Coinalyze + tier + EMA 12/50 + scoring pesato + delta + filtri + performance."""
+"""OI Monitor — Coinalyze + tier + EMA 12/50 + scoring pesato + delta + filtri + performance (chiusura struttura)."""
 
 import os
 import json
@@ -1001,7 +1001,7 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         else:
             return ("NEUTRAL", "weak", round(score), round(total))
 
-    # BLOCCO CONTRO-TREND (24h): niente forti contro il movimento
+    # BLOCCO CONTRO-TREND (24h)
     CT = 1.0
     if px_change_24h is not None:
         against = (direction == "SHORT" and px_change_24h > CT) or \
@@ -1009,7 +1009,7 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         if against and strength in ("full", "strong"):
             strength = "moderate"
 
-    # DECLASSAMENTO DELTA CONTRARIO: moderate senza flusso -> NEUTRAL
+    # DECLASSAMENTO DELTA CONTRARIO
     if delta and delta.get("ratio") is not None:
         dr = delta["ratio"]
         delta_against = (direction == "LONG" and dr < -0.03) or \
@@ -1017,7 +1017,7 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         if delta_against and strength == "moderate":
             return ("NEUTRAL", "weak", round(score), round(total))
 
-    # FRENO MOVIMENTO GIÀ ESPLOSO (anti comprare sul massimo)
+    # FRENO MOVIMENTO GIÀ ESPLOSO
     if px_change_24h is not None and delta and delta.get("ratio") is not None:
         dr = delta["ratio"]
         move = px_change_24h if direction == "LONG" else -px_change_24h
@@ -1218,10 +1218,41 @@ def append_history(entry):
 PERFORMANCE_FILE = "performance.json"
 
 
+def _structure_broken(direction, data):
+    """Chiusura BASATA SUI VALORI (non sul label NEUTRAL). Un trade resta aperto
+    finché la struttura che l'ha creato regge; si chiude se SI ROMPE almeno una:
+      - il trend 4h si gira (LONG chiude su TREND DOWN; SHORT su TREND UP)
+      - il prezzo rompe il VWAP settimanale (LONG chiude se scende sotto; SHORT sopra)
+      - il delta si gira forte contro (>5%)"""
+    if not data:
+        return False
+    tlabel = (data.get("trend") or {}).get("label")
+    vw = data.get("vwapW") or {}
+    above_vwap = vw.get("above")
+    dr = (data.get("delta") or {}).get("ratio")
+    if direction == "LONG":
+        if tlabel == "TREND DOWN":
+            return True
+        if above_vwap is False:
+            return True
+        if dr is not None and dr < -0.05:
+            return True
+    elif direction == "SHORT":
+        if tlabel == "TREND UP":
+            return True
+        if above_vwap is True:
+            return True
+        if dr is not None and dr > 0.05:
+            return True
+    return False
+
+
 def update_performance(new_state, last_state):
     """Traccia le performance dei segnali. performance.json ha due liste:
       - open:   trade attivi (LONG/SHORT in corso), aggiornati a ogni run col P&L live
-      - closed: trade chiusi (tornati NEUTRAL o girati), con esito finale
+      - closed: trade chiusi, con esito finale
+    La chiusura NON avviene al primo NEUTRAL, ma quando la STRUTTURA si rompe
+    (trend/VWAP/delta) — vedi _structure_broken. Così i trade durano quanto lo swing.
     """
     perf = load_json(PERFORMANCE_FILE, {"open": [], "closed": []})
     if not isinstance(perf, dict):
@@ -1236,6 +1267,9 @@ def update_performance(new_state, last_state):
 
     def cur_price(aid):
         return new_state.get(aid, {}).get("data", {}).get("price")
+
+    def cur_data(aid):
+        return new_state.get(aid, {}).get("data", {})
 
     still_open = []
     open_ids = set()
@@ -1253,7 +1287,11 @@ def update_performance(new_state, last_state):
             tr["last_ts"] = now
             tr["max_favor"] = round(max(tr.get("max_favor", favor), favor), 2)
             tr["min_favor"] = round(min(tr.get("min_favor", favor), favor), 2)
-        if d_now == direction:
+        # Chiusura per ROTTURA STRUTTURA (non per semplice NEUTRAL).
+        # Eccezione: se il segnale si è GIRATO in direzione opposta, chiudi comunque.
+        flipped = d_now in ("LONG", "SHORT") and d_now != direction
+        broken = _structure_broken(direction, cur_data(aid))
+        if not (flipped or broken):
             still_open.append(tr)
             open_ids.add(aid)
         else:
@@ -1263,6 +1301,7 @@ def update_performance(new_state, last_state):
             tr["result_pct"] = tr.get("pnl_pct", 0.0)
             tr["outcome"] = "win" if tr.get("pnl_pct", 0) > 0 else "loss"
             tr["closed_to"] = d_now
+            tr["close_reason"] = "flip" if flipped else "struttura"
             closed.append(tr)
 
     for aid, s in new_state.items():
