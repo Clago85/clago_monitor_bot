@@ -1,13 +1,20 @@
 name: OI Monitor
 
+# Schedule: 6 run/giorno, uno ~5 min dopo OGNI chiusura di candela 4h (UTC).
+# Le candele 4h chiudono alle 00/04/08/12/16/20 UTC: analizzare piu' spesso e'
+# inutile (stesso dato della candela). Cosi' ogni candela e' analizzata una volta
+# con dato fresco/confermato, si consuma 1/4 dei minuti del cron orario, e il resto
+# lo decide l'utente col run manuale (workflow_dispatch) quando c'e' una notizia.
+# Orari IT (estate, UTC+2): 02:05 06:05 10:05 14:05 18:05 22:05.
 on:
   schedule:
-    - cron: '5 * * * *'
-  workflow_dispatch:
+    - cron: '5 0,4,8,12,16,20 * * *'
+  workflow_dispatch:  # permette di lanciarlo manualmente dal tab Actions
 
 permissions:
-  contents: write
+  contents: write  # necessario per committare state.json e history.json
 
+# Evita run concorrenti che potrebbero corrompere lo state
 concurrency:
   group: oi-monitor
   cancel-in-progress: false
@@ -18,10 +25,10 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -44,6 +51,9 @@ jobs:
           [ -f performance.json ] && git add performance.json
           if ! git diff --cached --quiet; then
             git commit -m "State $(date -u +%Y-%m-%d_%H-%M)"
+            # pull --rebase prima del push: evita di perdere history/performance se
+            # un altro run ha già pushato (cron orario -> run ravvicinati). Senza
+            # questo, il push falliva e lo storico veniva perso (bug pre-luglio).
             for i in 1 2 3; do
               git pull --rebase --autostash origin main && git push && break
               echo "push $i fallito, retry..."; sleep 5
