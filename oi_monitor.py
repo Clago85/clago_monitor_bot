@@ -57,6 +57,27 @@ ASSETS = [
     # del mercato Bitget va verificato al primo run: se appare "BGB: dati assenti" nel log,
     # correggere il suffisso exchange qui sotto. binance=None così l'HTML non tenta il live.
     {"id": "BGB", "coinalyze": "BGBUSDT_PERP.A", "binance": None},
+    # --- Nuovi asset (lug 2026, watchlist utente) ---
+    # Simboli col pattern standard Coinalyze <SYM>USDT_PERP.A (aggregato multi-exchange).
+    {"id": "AVAX", "coinalyze": "AVAXUSDT_PERP.A", "binance": "AVAXUSDT"},
+    {"id": "DOT", "coinalyze": "DOTUSDT_PERP.A", "binance": "DOTUSDT"},
+    {"id": "CRV", "coinalyze": "CRVUSDT_PERP.A", "binance": "CRVUSDT"},
+    {"id": "LTC", "coinalyze": "LTCUSDT_PERP.A", "binance": "LTCUSDT"},
+    {"id": "ADA", "coinalyze": "ADAUSDT_PERP.A", "binance": "ADAUSDT"},
+    {"id": "DOGE", "coinalyze": "DOGEUSDT_PERP.A", "binance": "DOGEUSDT"},
+    {"id": "XRP", "coinalyze": "XRPUSDT_PERP.A", "binance": "XRPUSDT"},
+    {"id": "UNI", "coinalyze": "UNIUSDT_PERP.A", "binance": "UNIUSDT"},
+    {"id": "AAVE", "coinalyze": "AAVEUSDT_PERP.A", "binance": "AAVEUSDT"},
+    {"id": "TIA", "coinalyze": "TIAUSDT_PERP.A", "binance": "TIAUSDT"},
+    {"id": "WLD", "coinalyze": "WLDUSDT_PERP.A", "binance": "WLDUSDT"},
+    {"id": "POL", "coinalyze": "POLUSDT_PERP.A", "binance": "POLUSDT"},
+    {"id": "EIGEN", "coinalyze": "EIGENUSDT_PERP.A", "binance": "EIGENUSDT"},
+    # Da verificare al primo run (se "dati assenti" nel log, correggere il simbolo):
+    # PEPE spesso quotato x1000 (come BONK); RAY (Raydium) e XPL (Plasma, recente)
+    # potrebbero avere simbolo/exchange diverso.
+    {"id": "PEPE", "coinalyze": "1000PEPEUSDT_PERP.A", "binance": "1000PEPEUSDT"},
+    {"id": "RAY", "coinalyze": "RAYUSDT_PERP.A", "binance": "RAYUSDT"},
+    {"id": "XPL", "coinalyze": "XPLUSDT_PERP.A", "binance": None},
 ]
 
 T = {
