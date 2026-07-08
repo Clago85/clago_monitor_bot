@@ -1115,15 +1115,22 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
     # === DECLASSAMENTO PER DELTA CONTRARIO ===
     # Se il delta reale (flusso buy/sell) va CONTRO la direzione in modo netto,
     # manca la convinzione: un LONG con forte flusso di VENDITA (o viceversa) non è
-    # un buon setup. Se il segnale è solo "moderate", scende a NEUTRAL (niente trade).
+    # un buon setup. Un segnale è "forte" SOLO se pure il flusso è d'accordo:
+    #  - strong/full + delta contro  -> scende a "moderate" (direzione ok, timing no:
+    #    es. KAS short strutturale ma con delta +11% = compratori che spingono, a
+    #    metà range: si shorta un rimbalzo, non con convinzione)
+    #  - moderate + delta contro     -> NEUTRAL (niente trade)
     # Soglia 3%: sotto il 2% è rumore, dal 3% in su è flusso reale contrario.
     # (Tarata sui dati veri: i long deboli avevano delta -3/-4% = distribuzione.)
     if delta and delta.get("ratio") is not None:
         dr = delta["ratio"]
         delta_against = (direction == "LONG" and dr < -0.03) or \
                         (direction == "SHORT" and dr > 0.03)
-        if delta_against and strength == "moderate":
-            return ("NEUTRAL", "weak", round(score), round(total))
+        if delta_against:
+            if strength in ("full", "strong"):
+                strength = "moderate"
+            elif strength == "moderate":
+                return ("NEUTRAL", "weak", round(score), round(total))
 
     # === VETO "NESSUNA CONFERMA" (VWAP sett. + delta ENTRAMBI contro) ===
     # Un segnale solo 'moderate' che ha CONTRO le due conferme che pesano di più:
