@@ -1,15 +1,12 @@
 name: OI Monitor
 
-# Schedule: 6 run/giorno, uno ~5 min dopo OGNI chiusura di candela 4h (UTC).
-# Le candele 4h chiudono alle 00/04/08/12/16/20 UTC: analizzare piu' spesso e'
-# inutile (stesso dato della candela). Cosi' ogni candela e' analizzata una volta
-# con dato fresco/confermato, si consuma 1/4 dei minuti del cron orario, e il resto
-# lo decide l'utente col run manuale (workflow_dispatch) quando c'e' una notizia.
-# Orari IT (estate, UTC+2): 02:05 06:05 10:05 14:05 18:05 22:05.
+# Pianificazione ESTERNA: il run 4h lo fa partire cron-job.org (affidabile) via
+# API workflow_dispatch, ~5 min dopo ogni chiusura di candela 4h (orari IT:
+# 02:05 06:05 10:05 14:05 18:05 22:05). Qui NON teniamo il cron interno di GitHub
+# perche' e' best-effort (saltava/ritardava) e creerebbe run doppi con l'esterno.
+# Restano solo i trigger manuali: tasto "Run workflow" (GitHub/app) o cron-job.org.
 on:
-  schedule:
-    - cron: '5 0,4,8,12,16,20 * * *'
-  workflow_dispatch:  # permette di lanciarlo manualmente dal tab Actions
+  workflow_dispatch:  # run manuale dal tab Actions + trigger via API (cron-job.org)
 
 permissions:
   contents: write  # necessario per committare state.json e history.json
