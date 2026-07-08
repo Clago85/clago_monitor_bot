@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OI Monitor — Coinalyze + tier + EMA 12/50 + scoring pesato + delta + filtri + performance (chiusura struttura)."""
+"""OI Monitor — Coinalyze + tier system + EMA 8/12 + Signal 4h per tier + pending alerts."""
 
 import os
 import json
@@ -53,7 +53,9 @@ ASSETS = [
     {"id": "ALGO", "coinalyze": "ALGOUSDT_PERP.A", "binance": "ALGOUSDT"},
     {"id": "APT", "coinalyze": "APTUSDT_PERP.A", "binance": "APTUSDT"},
     {"id": "FARTCOIN", "coinalyze": "FARTCOINUSDT_PERP.A", "binance": "FARTCOINUSDT"},
-    # BGB: futures solo su Bitget. Se log dice "dati assenti", correggere suffisso.
+    # BGB: quotato a futures SOLO su Bitget (non su Binance/Bybit). Il simbolo Coinalyze
+    # del mercato Bitget va verificato al primo run: se appare "BGB: dati assenti" nel log,
+    # correggere il suffisso exchange qui sotto. binance=None così l'HTML non tenta il live.
     {"id": "BGB", "coinalyze": "BGBUSDT_PERP.A", "binance": None},
 ]
 
@@ -70,17 +72,23 @@ T = {
     "funding_very_high": 0.08,
     "funding_negative": -0.01,
     "funding_very_neg": -0.03,
-    "sig_px_flat": 0.5,
-    "sig_px_move": 0.8,
-    "sig_px24_move": 1.0,
-    "sig_oi_move": 1.5,
-    "sig_oi24_move": 2.0,
+    # --- Soglie Signal 4h (default STANDARD) ---
+    "sig_px_flat": 0.5,    # BUILD-UP: |px4| sotto questa = "piatto"; e soglia min px CONFERMA
+    "sig_px_move": 0.8,    # px divergenza/movimento min su 4h
+    "sig_px24_move": 1.0,  # px divergenza min su 24h
+    "sig_oi_move": 1.5,    # oi build-up/divergenza/conferma min su 4h
+    "sig_oi24_move": 2.0,  # oi divergenza min su 24h
 }
 
 EMA_FAST_4H = 12
 EMA_SLOW_4H = 50
 EMA_MACRO_1D = 200
 
+# === SISTEMA A TIER: ogni asset appartiene a una categoria con soglie diverse ===
+# MAJOR: market cap molto alto, OI stabile, volatilità bassa
+# STANDARD: la maggior parte degli altcoin, comportamento "normale" (default T)
+# SMALL: altcoin più piccoli, volatilità maggiore
+# MEMECOIN: estremamente volatili, OI/funding possono spike enormi
 ASSET_TIERS = {
     "BTC": "MAJOR",   "ETH": "MAJOR",    "SOL": "MAJOR",
     "SEI": "SMALL",   "RENDER": "SMALL", "VIRTUAL": "SMALL",
@@ -92,12 +100,14 @@ TIER_OVERRIDES = {
     "MAJOR": {
         "oi_expanding": 2.5, "oi_strong_exp": 5, "oi_contracting": -2.5, "oi_strong_contr": -5,
         "price_up": 1.5, "price_strong_up": 4, "price_down": -1.5, "price_strong_down": -4,
+        # Signal 4h più reattivo: BTC/ETH/SOL si muovono poco, soglie strette
         "sig_px_flat": 0.4, "sig_px_move": 0.6, "sig_px24_move": 0.8,
         "sig_oi_move": 1.0, "sig_oi24_move": 1.5,
     },
     "SMALL": {
         "oi_expanding": 6, "oi_strong_exp": 12, "oi_contracting": -6, "oi_strong_contr": -12,
         "price_up": 2.5, "price_strong_up": 6, "price_down": -2.5, "price_strong_down": -6,
+        # Signal 4h leggermente più largo per filtrare rumore
         "sig_px_flat": 0.7, "sig_px_move": 1.2, "sig_px24_move": 1.5,
         "sig_oi_move": 2.0, "sig_oi24_move": 3.0,
     },
@@ -106,6 +116,7 @@ TIER_OVERRIDES = {
         "price_up": 4, "price_strong_up": 10, "price_down": -4, "price_strong_down": -10,
         "funding_high": 0.08, "funding_very_high": 0.15,
         "funding_negative": -0.015, "funding_very_neg": -0.05,
+        # Signal 4h molto largo: BONK/PENGU oscillano del 2-3% in 4h come routine
         "sig_px_flat": 1.5, "sig_px_move": 2.5, "sig_px24_move": 3.0,
         "sig_oi_move": 3.5, "sig_oi24_move": 5.0,
     },
@@ -113,6 +124,7 @@ TIER_OVERRIDES = {
 
 
 def get_thresholds_for(asset_id):
+    """Restituisce le soglie per un asset in base al suo tier."""
     t = T.copy()
     tier = ASSET_TIERS.get(asset_id)
     if tier and tier in TIER_OVERRIDES:
@@ -155,6 +167,11 @@ def coinalyze_get(path, params, max_retries=5):
     raise Exception(f"Coinalyze {path}: rate-limit dopo {max_retries} tentativi")
 
 
+# === Bybit public data: Long/Short Ratio (fallback) ===
+# Coinalyze fornisce un long/short ratio affidabile (campo `r`) e funziona da GitHub
+# Actions. Binance Futures invece è bloccato (HTTP 451) dagli IP dei runner, quindi NON
+# è utilizzabile qui. Bybit viene usato solo come "riempi-buchi" per gli asset che
+# Coinalyze non copre.
 BYBIT_BASE = "https://api.bybit.com"
 
 
@@ -175,6 +192,8 @@ def bybit_get(path, params, max_retries=3):
 
 
 def fetch_bybit_lsr(assets):
+    """Long/Short ratio (account ratio Bybit), usato solo come fallback.
+    Restituisce {asset_id: float}. ratio = buyRatio / sellRatio."""
     out = {}
     syms = [(a["id"], a.get("binance")) for a in assets if a.get("binance")]
     if not syms:
@@ -198,6 +217,9 @@ def fetch_bybit_lsr(assets):
     return out
 
 
+# === OKX public data: Long/Short Ratio (terzo fallback) ===
+# Usato per gli asset che né Coinalyze né Bybit coprono. Endpoint pubblico, accessibile
+# da GitHub Actions. ccy = ticker dell'asset (es. TAO, INJ).
 OKX_BASE = "https://www.okx.com"
 
 
@@ -218,6 +240,8 @@ def okx_get(path, params, max_retries=3):
 
 
 def fetch_okx_lsr(assets):
+    """Long/Short account ratio da OKX (rubik), usato come ulteriore fallback.
+    Restituisce {asset_id: float}. ccy = ticker dell'asset; risposta = lista [ts, ratio]."""
     out = {}
     if not assets:
         return out
@@ -231,6 +255,7 @@ def fetch_okx_lsr(assets):
             )
             data = (resp or {}).get("data") or []
             if data:
+                # data ordinata dal più recente; ogni voce è [timestamp, ratio]
                 ratio = float(data[0][1])
                 if ratio > 0:
                     out[aid] = ratio
@@ -283,6 +308,7 @@ def compute_trend(klines4h, klines1d, current_price):
     ema_slow = compute_ema(closes4h, EMA_SLOW_4H)
     if ema_fast is None or ema_slow is None:
         return None
+    # Macro = EMA lenta sul 4h (50). Niente più EMA 200 su 1d: troppo lenta.
     ema_macro = ema_slow
     ema_macro_period = EMA_SLOW_4H
     fast_vs_slow = ema_fast > ema_slow
@@ -467,6 +493,9 @@ def compute_poc_swing(klines, current_price, lookback_bars=126):
 
 
 def compute_vwap(klines, bars):
+    """VWAP (Volume Weighted Average Price) sulle ultime `bars` candele.
+    typical price = (H+L+C)/3, pesato per volume. Restituisce dict con valore e
+    posizione del prezzo corrente rispetto al VWAP (distanza % e above bool)."""
     if not klines or len(klines) < 2:
         return None
     tail = klines[-bars:] if len(klines) >= bars else klines
@@ -490,7 +519,13 @@ def compute_vwap(klines, bars):
     return {"vwap": vwap, "distance": dist, "above": last_close > vwap, "bars": len(tail)}
 
 
-def compute_delta(klines, bars=3):
+def compute_delta(klines, bars=6):
+    """Delta REALE compratori-venditori dalle candele Coinalyze.
+    Coinalyze OHLCV espone 'v' (volume totale) e 'bv' (buy volume).
+    delta = bv - (v - bv) = 2*bv - v.  >0 = dominano i compratori.
+    Calcola: delta ultima candela, somma delta su `bars`, e il rapporto
+    cumulato (buy/sell) per leggere lo sbilanciamento recente.
+    Ritorna None se 'bv' non è disponibile (alcuni mercati minori)."""
     if not klines or len(klines) < 2:
         return None
     tail = klines[-bars:] if len(klines) >= bars else klines
@@ -510,8 +545,14 @@ def compute_delta(klines, bars=3):
             last_delta = bv - sv
     cum_delta = tot_buy - tot_sell
     denom = tot_buy + tot_sell
+    # ratio normalizzato in [-1, +1]: +1 tutto buy, -1 tutto sell
     ratio = (cum_delta / denom) if denom > 0 else 0.0
-    return {"lastDelta": last_delta, "cumDelta": cum_delta, "ratio": ratio, "bars": len(tail)}
+    return {
+        "lastDelta": last_delta,      # delta ultima candela 4h
+        "cumDelta": cum_delta,        # delta cumulato su `bars`
+        "ratio": ratio,               # sbilanciamento normalizzato [-1,+1]
+        "bars": len(tail),
+    }
 
 
 def fetch_all_via_coinalyze():
@@ -546,6 +587,8 @@ def fetch_all_via_coinalyze():
         print(f"[WARN] funding-rate fallito: {e}", flush=True)
     time.sleep(SLEEP_BETWEEN_BATCHES)
 
+    # OI corrente in tempo reale (snapshot) — più fresco delle candele orarie.
+    # Le candele 1h restano per calcolare i confronti OI 4h/24h fa.
     oi_now_by_sym = {}
     print(f"[INFO] Coinalyze open-interest snapshot ({len(all_assets)} simboli)", flush=True)
     try:
@@ -567,7 +610,7 @@ def fetch_all_via_coinalyze():
 
     lsr_by_sym = {}
     lsr_batches = list(_chunks(all_assets, BATCH_SIZE))
-    print(f"[INFO] Coinalyze L/S · {len(lsr_batches)} batch", flush=True)
+    print(f"[INFO] Coinalyze L/S top traders · {len(lsr_batches)} batch", flush=True)
     for batch_idx, batch in enumerate(lsr_batches, 1):
         sym_csv = ",".join(a["coinalyze"] for a in batch)
         try:
@@ -584,8 +627,10 @@ def fetch_all_via_coinalyze():
                     if hist:
                         last = max(hist, key=lambda x: x.get("t", 0))
                         ratio_global = last.get("r") or last.get("ratio")
+                        ratio_top = last.get("tr") or last.get("top_trader_ratio")
                         lsr_by_sym[sym] = {
                             "global": float(ratio_global) if ratio_global is not None else None,
+                            "top": float(ratio_top) if ratio_top is not None else None,
                         }
         except Exception as e:
             print(f"  [WARN] L/S batch {batch_idx}: {e}", flush=True)
@@ -643,7 +688,9 @@ def fetch_all_via_coinalyze():
         if batch_idx < len(batches):
             time.sleep(SLEEP_BETWEEN)
 
-    # candele 1d NON più scaricate (EMA macro = EMA 50 sul 4h). Risparmio API/minuti.
+    # NB: le candele giornaliere (1d) NON vengono più scaricate. La EMA macro ora è la
+    # EMA 50 sul 4h (non più EMA 200 daily), quindi i dati 1d erano inutilizzati.
+    # Rimuoverli risparmia ~31 chiamate API e ~1 min per run (minuti GitHub Actions).
     klines1d_by_sym = {}
 
     result = {}
@@ -662,6 +709,7 @@ def fetch_all_via_coinalyze():
             def _close(c):
                 return float(c.get("c", c.get("close", 0)))
 
+            # OI corrente: preferisci lo snapshot real-time; fallback all'ultima candela 1h
             snap_oi = oi_now_by_sym.get(sym)
             current_oi = snap_oi if snap_oi is not None else _close(oi_sorted[-1])
             oi_24h_ago = _close(oi_sorted[0])
@@ -674,6 +722,8 @@ def fetch_all_via_coinalyze():
             price_change_24h = ((current_price - price_24h_ago) / price_24h_ago) * 100 if price_24h_ago else None
             price_change_4h = ((current_price - price_4h_ago) / price_4h_ago) * 100 if price_4h_ago else None
             funding_rate = fr_by_sym.get(sym, 0.0) * 100
+            # L/S ratio: un solo valore affidabile da Coinalyze (campo r).
+            # Gli asset senza dato Coinalyze verranno riempiti con Bybit più sotto.
             c_lsr = lsr_by_sym.get(sym, {})
             lsr_value = c_lsr.get("global")
             lsr_source = "coinalyze" if lsr_value is not None else None
@@ -684,8 +734,11 @@ def fetch_all_via_coinalyze():
             rvol = compute_rvol(k4h, lookback=20)
             fvg = detect_fvgs(k4h, current_price)
             poc = compute_poc_swing(k4h, current_price, lookback_bars=126)
+            # VWAP: settimanale (~42 barre 4h = 7gg) e mensile (~180 barre = 30gg)
             vwap_w = compute_vwap(k4h, 42)
             vwap_m = compute_vwap(k4h, 180)
+            # Delta reale buy/sell (da campo bv di Coinalyze), ultime 3 candele 4h (~12h).
+            # 3 candele invece di 6: più reattivo, non si media a zero come prima.
             delta = compute_delta(k4h, bars=3)
             result[aid] = {
                 "source": "Coinalyze",
@@ -712,6 +765,7 @@ def fetch_all_via_coinalyze():
         except Exception as e:
             result[aid] = {"error": f"parse error: {e}"}
 
+    # Riempi i buchi L/S (asset senza dato Coinalyze) con Bybit
     missing = [a for a in ASSETS
                if isinstance(result.get(a["id"]), dict)
                and not result[a["id"]].get("error")
@@ -724,6 +778,7 @@ def fetch_all_via_coinalyze():
             if v is not None:
                 result[a["id"]]["lsr"] = v
                 result[a["id"]]["lsrSource"] = "bybit"
+    # Ancora senza L/S dopo Bybit -> ultimo tentativo con OKX
     still_missing = [a for a in ASSETS
                      if isinstance(result.get(a["id"]), dict)
                      and not result[a["id"]].get("error")
@@ -860,17 +915,22 @@ def compute_action(bias, signal_4h):
     return ("NEUTRAL", "weak")
 
 
+# Pesi dei fattori di confluenza (più alto = più importante per validare l'azione).
+# Logica: si entra CON il trend, confermato da OI e volume; funding e L/S agiscono
+# da filtro contrarian agli estremi (folla troppo sbilanciata = rischio); la struttura
+# (POC/FVG) misura la qualità dell'ingresso.
 CONF_WEIGHTS = {
-    "trend": 3,
-    "oi": 3,
-    "obv": 2,
-    "poc": 2,
-    "vwap_w": 2,
-    "delta": 3,
-    "fvg": 1,
-    "vwap_m": 1,
-    "funding": 2,
-    "lsr": 1,
+    "trend": 3,    # direzione EMA 12/50 sul 4h: non andare controtrend
+    "oi": 3,       # OI in espansione = convinzione dietro il movimento
+    "obv": 2,      # volume che conferma la spinta
+    "poc": 2,      # posizione vs POC (volume profile)
+    "vwap_w": 2,   # prezzo vs VWAP settimanale (fair value istituzionale, swing)
+    "delta": 3,    # delta reale buy/sell — ANTICIPATORE (si muove per primo): peso alto per reattività
+    "fvg": 1,      # gap di prezzo a favore
+    "vwap_m": 1,   # prezzo vs VWAP mensile (filtro trend macro)
+    # --- I due sotto NON danno bonus: sono PENALITÀ contrarian agli estremi ---
+    "funding": 2,  # PENALITÀ se funding bollente/gelido contro il trade
+    "lsr": 1,      # PENALITÀ se L/S retail troppo carico nel verso del trade
 }
 
 
@@ -879,6 +939,14 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
                                    funding=None, lsr=None, thresholds=None,
                                    vwap_w=None, vwap_m=None, delta=None,
                                    px_change_24h=None):
+    """Confluenza PESATA: ogni fattore contribuisce con il suo peso se è d'accordo
+    con la direzione. La forza dipende dalla frazione di peso a favore (score/total).
+    I fattori mancanti vengono esclusi dal totale, così non penalizzano a vuoto."""
+    # === GERARCHIA DELLA DIREZIONE (ottimizzata per swing 4h) ===
+    # MOTORE PRIMARIO = TREND. Su uno swing la direzione la dà il trend 4h (EMA 12/50),
+    # non l'OI: così si entra presto sui trend puliti senza aspettare che il bias 24h
+    # diventi "estremo". L'OI-matrix resta come SECONDO motore per i casi in cui il
+    # trend è piatto (range/CHOP) o per cogliere le inversioni (REVERSAL contro-trend).
     matrix_action, _ = compute_action(bias, signal_4h)
     tlabel = trend.get("label") if trend else None
     direction = "NEUTRAL"
@@ -887,6 +955,7 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
     if tlabel == "TREND UP":
         direction = "LONG"
         trend_generated = True
+        # Eccezione: se la matrice grida un'inversione opposta forte, lasciala vincere
         if matrix_action == "SHORT" and signal_4h in ("REVERSAL", "OI GIRA"):
             direction = "SHORT"
             trend_generated = False
@@ -897,6 +966,7 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
             direction = "LONG"
             trend_generated = False
     else:
+        # Trend piatto (CHOP/PULLBACK): si affida alla matrice OI (range, build-up, ecc.)
         direction = matrix_action
 
     if direction == "NEUTRAL":
@@ -906,6 +976,7 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
     score = 0.0
     total = 0.0
 
+    # 1) Trend EMA 12/50 (4h)
     if trend and trend.get("label"):
         total += W["trend"]
         if direction == "LONG" and trend["label"] in ("TREND UP", "PULLBACK UP"):
@@ -913,11 +984,13 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         elif direction == "SHORT" and trend["label"] in ("TREND DOWN", "PULLBACK DOWN"):
             score += W["trend"]
 
+    # 2) Open Interest: espansione = convinzione dietro il movimento (vale entrambe le direzioni)
     if oi_change_4h is not None:
         total += W["oi"]
         if oi_change_4h > t.get("sig_oi_move", 1.5):
             score += W["oi"]
 
+    # 3) OBV / volume
     if obv:
         total += W["obv"]
         if direction == "LONG" and obv.get("direction", 0) == 1:
@@ -925,6 +998,7 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         elif direction == "SHORT" and obv.get("direction", 0) == -1:
             score += W["obv"]
 
+    # 4) POC / struttura
     if poc and poc.get("poc") and current_price:
         total += W["poc"]
         if direction == "LONG" and current_price > poc["poc"]:
@@ -932,6 +1006,7 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         elif direction == "SHORT" and current_price < poc["poc"]:
             score += W["poc"]
 
+    # 4b) VWAP settimanale: prezzo sopra = supporta LONG, sotto = supporta SHORT
     if vwap_w and vwap_w.get("vwap"):
         total += W["vwap_w"]
         if direction == "LONG" and vwap_w.get("above"):
@@ -939,6 +1014,7 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         elif direction == "SHORT" and not vwap_w.get("above"):
             score += W["vwap_w"]
 
+    # 4c) VWAP mensile: filtro trend macro
     if vwap_m and vwap_m.get("vwap"):
         total += W["vwap_m"]
         if direction == "LONG" and vwap_m.get("above"):
@@ -946,21 +1022,30 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         elif direction == "SHORT" and not vwap_m.get("above"):
             score += W["vwap_m"]
 
+    # 4d) DELTA reale (IBRIDO, peso 2): dà il punto se UNA delle due:
+    #     (a) momentum: delta a favore della direzione (buy per LONG, sell per SHORT)
+    #     (b) assorbimento a un livello chiave: delta CONTRO il prezzo ma il prezzo regge
+    #         (es. forte vendita ma prezzo non scende vicino a VWAP/POC = assorbimento buy)
     if delta and delta.get("ratio") is not None:
         total += W["delta"]
-        dr = delta["ratio"]
+        dr = delta["ratio"]               # [-1, +1]: >0 dominano i compratori
+        # momentum a favore
         momentum_ok = (direction == "LONG" and dr > 0.10) or (direction == "SHORT" and dr < -0.10)
+        # assorbimento a livello: vicino a VWAP settimanale o POC
         near_level = False
         if vwap_w and vwap_w.get("vwap") and current_price:
             near_level = abs(current_price - vwap_w["vwap"]) / vwap_w["vwap"] <= 0.01
         if poc and poc.get("poc") and current_price and not near_level:
             near_level = abs(current_price - poc["poc"]) / poc["poc"] <= 0.01
+        # assorbimento: a un livello, delta forte CONTRO la direzione = chi difende il livello
+        # (per un LONG: vendite forti assorbite => dr molto negativo ma siamo al supporto)
         absorption_ok = near_level and (
             (direction == "LONG" and dr < -0.25) or (direction == "SHORT" and dr > 0.25)
         )
         if momentum_ok or absorption_ok:
             score += W["delta"]
 
+    # 6) FVG: gap a favore (sotto per LONG = supporto, sopra per SHORT = resistenza/target)
     if fvg and (fvg.get("above") or fvg.get("below")):
         total += W["fvg"]
         if direction == "LONG" and fvg.get("below"):
@@ -968,17 +1053,25 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         elif direction == "SHORT" and fvg.get("above"):
             score += W["fvg"]
 
+    # === FILTRI CONTRARIAN (solo PENALITÀ agli estremi) ===
+    # Funding e L/S NON danno bonus quando sono normali (non entrano in `total`):
+    # restano neutri. Tolgono punti SOLO quando sono a un estremo CONTRO il trade,
+    # perché segnalano folla troppo sbilanciata = rischio washout/squeeze.
     penalty = 0.0
+
+    # Funding estremo contro il trade
     if funding is not None:
         if direction == "LONG" and funding > t.get("funding_very_high", 0.08):
-            penalty += W["funding"]
+            penalty += W["funding"]   # long su funding bollente = rischioso
         elif direction == "SHORT" and funding < t.get("funding_very_neg", -0.03):
-            penalty += W["funding"]
+            penalty += W["funding"]   # short su funding molto negativo = rischio squeeze
+
+    # L/S retail estremo nel verso del trade (contrarian: folla troppo carica)
     if lsr is not None:
         if direction == "LONG" and lsr > 2.0:
-            penalty += W["lsr"]
+            penalty += W["lsr"]       # troppi long retail = rischio per un nuovo long
         elif direction == "SHORT" and lsr < 0.5:
-            penalty += W["lsr"]
+            penalty += W["lsr"]       # troppi short retail = rischio per un nuovo short
 
     score = max(0.0, score - penalty)
 
@@ -987,7 +1080,14 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         return (direction, base_strength, 0, 0)
 
     frac = score / total
+    # Soglie reattive: abbassate per anticipare il passaggio a 'forte'.
+    # (full 0.82, strong 0.66, moderate 0.52). Combinate col peso alto del delta
+    # rendono il segnale forte più tempestivo senza allargarlo a mosse deboli.
     if trend_generated:
+        # Segnale nato dal trend (senza conferma bias/OI): solo MODERATE o STRONG.
+        # SOGLIA MINIMA 30%: un trend up/down da solo non basta. Serve almeno il 30%
+        # di confluenza (OI/volume/struttura a favore), altrimenti è un trend che sta
+        # morendo (es. APT: trend up ma OI in calo, delta piatto, 24%) -> NEUTRAL.
         if frac < 0.30:
             return ("NEUTRAL", "weak", round(score), round(total))
         strength = "strong" if frac >= 0.66 else "moderate"
@@ -1001,15 +1101,23 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         else:
             return ("NEUTRAL", "weak", round(score), round(total))
 
-    # BLOCCO CONTRO-TREND (24h)
-    CT = 1.0
+    # === BLOCCO CONTRO-TREND (24h) ===
+    # Se il prezzo nelle 24h va CONTRO la direzione, il segnale non può essere "forte":
+    # stai shortando un asset che sale (es. XLM +4%) o longando uno che scende.
+    # Declassa a "moderate" — evita i forti sui rimbalzi controtrend visti nel check.
+    CT = 1.0  # % minima di movimento 24h per considerarlo "contro"
     if px_change_24h is not None:
         against = (direction == "SHORT" and px_change_24h > CT) or \
                   (direction == "LONG" and px_change_24h < -CT)
         if against and strength in ("full", "strong"):
             strength = "moderate"
 
-    # DECLASSAMENTO DELTA CONTRARIO
+    # === DECLASSAMENTO PER DELTA CONTRARIO ===
+    # Se il delta reale (flusso buy/sell) va CONTRO la direzione in modo netto,
+    # manca la convinzione: un LONG con forte flusso di VENDITA (o viceversa) non è
+    # un buon setup. Se il segnale è solo "moderate", scende a NEUTRAL (niente trade).
+    # Soglia 3%: sotto il 2% è rumore, dal 3% in su è flusso reale contrario.
+    # (Tarata sui dati veri: i long deboli avevano delta -3/-4% = distribuzione.)
     if delta and delta.get("ratio") is not None:
         dr = delta["ratio"]
         delta_against = (direction == "LONG" and dr < -0.03) or \
@@ -1017,10 +1125,34 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         if delta_against and strength == "moderate":
             return ("NEUTRAL", "weak", round(score), round(total))
 
-    # FRENO MOVIMENTO GIÀ ESPLOSO
+    # === VETO "NESSUNA CONFERMA" (VWAP sett. + delta ENTRAMBI contro) ===
+    # Un segnale solo 'moderate' che ha CONTRO le due conferme che pesano di più:
+    #  - prezzo dal lato sbagliato della VWAP settimanale (niente livello istituzionale)
+    #  - E delta reale contro la direzione (il flusso spinge dall'altra parte)
+    # non è un trade: è deriva vicino alla media. Nessuno dei due filtri singoli lo
+    # blocca (delta-contrario scatta solo oltre 3%, la VWAP da sola pesa 2), ma INSIEME
+    # dicono "nessuna convinzione". Es. ETH LONG 6/17 sotto VWAP sett. con delta -2.5%
+    # mentre BTC identico era già NEUTRAL: così tornano coerenti (entrambi NEUTRAL).
+    # Solo 'moderate': uno 'strong/full' ha già abbastanza struttura altrove.
+    if strength == "moderate" and vwap_w and vwap_w.get("vwap") and \
+       delta and delta.get("ratio") is not None:
+        dr2 = delta["ratio"]
+        vwap_against = (direction == "LONG" and not vwap_w.get("above")) or \
+                       (direction == "SHORT" and vwap_w.get("above"))
+        delta_against2 = (direction == "LONG" and dr2 < -0.01) or \
+                         (direction == "SHORT" and dr2 > 0.01)
+        if vwap_against and delta_against2:
+            return ("NEUTRAL", "weak", round(score), round(total))
+
+    # === FRENO MOVIMENTO GIÀ ESPLOSO (anti "comprare sul massimo") ===
+    # Se il prezzo ha già corso MOLTO nella direzione del segnale nelle 24h e il flusso
+    # (delta) NON conferma con forza, è un ingresso tardivo: stai comprando un massimo
+    # o shortando un minimo già fatto. Es. JUP LONG +17% con delta 0%.
+    #  - oltre ±12% a favore + delta debole (<10%) -> niente "strong/full" (max moderate)
+    #  - oltre ±18% (estensione estrema) + delta debole -> NEUTRAL (non inseguire)
     if px_change_24h is not None and delta and delta.get("ratio") is not None:
         dr = delta["ratio"]
-        move = px_change_24h if direction == "LONG" else -px_change_24h
+        move = px_change_24h if direction == "LONG" else -px_change_24h  # >0 = a favore
         delta_confirms = (direction == "LONG" and dr > 0.10) or \
                          (direction == "SHORT" and dr < -0.10)
         if move > 18 and not delta_confirms:
@@ -1120,7 +1252,7 @@ def format_transition_message(t, other_active_state=None):
     if trend and trend.get("label"):
         tech_block += f"<b>Trend:</b> {trend['label']}"
         if trend.get("emaMacroPeriod"):
-            tech_block += f" (EMA{trend['emaMacroPeriod']} 4h)"
+            tech_block += f" (EMA{trend['emaMacroPeriod']} 1D)"
         tech_block += "\n"
     if obv:
         obv_dir = "↑" if obv.get("direction", 0) == 1 else "↓" if obv.get("direction", 0) == -1 else "→"
@@ -1152,13 +1284,13 @@ def format_transition_message(t, other_active_state=None):
     if delta and delta.get("ratio") is not None:
         r = delta["ratio"]
         dlabel = "compratori" if r > 0 else "venditori"
-        tech_block += f"<b>Delta 12h:</b> {('+' if r>=0 else '')}{r*100:.0f}% ({dlabel})\n"
+        tech_block += f"<b>Delta 1g:</b> {('+' if r>=0 else '')}{r*100:.0f}% ({dlabel})\n"
     confluence = t.get("confluence")
     if confluence:
         score = confluence.get("score", 0)
         total = confluence.get("total", 0)
         if total > 0:
-            tech_block += f"<b>📊 Confluenza:</b> {score}/{total} (peso a favore)\n"
+            tech_block += f"<b>📊 Confluenza:</b> {score}/{total} indicatori d'accordo\n"
     msg = (
         f"{emoji} <b>{curr_a} {strength_text}</b> · <b>{asset}</b>{exhaustion_tag}\n"
         f"🕐 <b>Rilevato:</b> {now_italy_str()}\n\n"
@@ -1223,9 +1355,11 @@ def _structure_broken(direction, data):
     finché la struttura che l'ha creato regge; si chiude se SI ROMPE almeno una:
       - il trend 4h si gira (LONG chiude su TREND DOWN; SHORT su TREND UP)
       - il prezzo rompe il VWAP settimanale (LONG chiude se scende sotto; SHORT sopra)
-      - il delta si gira forte contro (>5%)"""
+      - il delta si gira forte contro (>5%)
+    Così un LONG resta aperto anche se il label va NEUTRAL, purché trend+VWAP+flusso
+    reggano — elimina i trade-spezzone da 1-2h e misura lo swing vero."""
     if not data:
-        return False
+        return False  # niente dati: non chiudere per prudenza
     tlabel = (data.get("trend") or {}).get("label")
     vw = data.get("vwapW") or {}
     above_vwap = vw.get("above")
@@ -1281,9 +1415,9 @@ def update_performance(new_state, last_state):
         d_now = cur_dir(aid)
         if pc and p0:
             chg = (pc - p0) / p0 * 100
-            favor = chg if direction == "LONG" else -chg
+            favor = chg if direction == "LONG" else -chg  # >0 = a favore
             tr["last_price"] = pc
-            tr["pnl_pct"] = round(favor, 2)
+            tr["pnl_pct"] = round(favor, 2)  # P&L a favore corrente
             tr["last_ts"] = now
             tr["max_favor"] = round(max(tr.get("max_favor", favor), favor), 2)
             tr["min_favor"] = round(min(tr.get("min_favor", favor), favor), 2)
@@ -1304,6 +1438,7 @@ def update_performance(new_state, last_state):
             tr["close_reason"] = "flip" if flipped else "struttura"
             closed.append(tr)
 
+    # apri nuovi trade per asset appena entrati in LONG/SHORT (e non già tracciati)
     for aid, s in new_state.items():
         lab = s.get("label", "")
         direction = lab.split("_")[0] if "_" in lab else "NEUTRAL"
@@ -1324,7 +1459,7 @@ def update_performance(new_state, last_state):
                 })
                 open_ids.add(aid)
 
-    closed = closed[-500:]
+    closed = closed[-500:]  # cap
     save_json(PERFORMANCE_FILE, {"open": still_open, "closed": closed})
 
 
@@ -1373,10 +1508,17 @@ def main():
             transition_logged = False
             is_transition = prev_label and should_notify(prev_label, curr_label)
             is_new_active = (not prev_label) and (not is_first_run) and action in ("LONG", "SHORT")
+            # Cambio di stato "generico": qualsiasi variazione di label (include
+            # anche uscite a NEUTRAL e indebolimenti, che NON generano alert Telegram).
             label_changed = bool(prev_label) and (prev_label != curr_label)
+            # since_ts = "da quando" l'asset è in QUESTO stato (orario dell'ultima
+            # transizione di label). Resta FISSO finché il label non cambia, così
+            # l'orario mostrato nel pannello/storico coincide con l'alert Telegram e
+            # non si sposta ad ogni run del bot.
             prev_since = prev_entry.get("since_ts")
             since_ts = int(time.time()) if (label_changed or not prev_since) else prev_since
 
+            # --- Alert Telegram: solo eventi rilevanti (ingressi, inversioni, rafforzamenti) ---
             if is_transition or is_new_active:
                 from_label = prev_label if is_transition else "NEW"
                 transition = {
@@ -1392,6 +1534,7 @@ def main():
                 transitions.append(transition)
                 transition_logged = True
 
+            # --- Storico history.json: OGNI cambio di stato (audit completo h24) ---
             if label_changed or is_new_active:
                 hist_from = prev_label if label_changed else "NEW"
                 append_history({
@@ -1502,3 +1645,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# audit history: ogni cambio di stato viene registrato in history.json (h24)
