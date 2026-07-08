@@ -1,0 +1,32 @@
+name: OI Daily Report
+
+# Report giornaliero su Telegram. Lanciato via workflow_dispatch da un job su
+# cron-job.org alle 23:00 italiane (come per il monitor: trigger esterno affidabile,
+# gira sui server GitHub, indipendente dal PC). Anche manuale dal tab Actions.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read  # legge solo performance.json, non scrive nulla
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Send daily report
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python daily_report.py
