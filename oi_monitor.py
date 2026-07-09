@@ -72,12 +72,9 @@ ASSETS = [
     {"id": "WLD", "coinalyze": "WLDUSDT_PERP.A", "binance": "WLDUSDT"},
     {"id": "POL", "coinalyze": "POLUSDT_PERP.A", "binance": "POLUSDT"},
     {"id": "EIGEN", "coinalyze": "EIGENUSDT_PERP.A", "binance": "EIGENUSDT"},
-    # Da verificare al primo run (se "dati assenti" nel log, correggere il simbolo):
-    # PEPE spesso quotato x1000 (come BONK); RAY (Raydium) e XPL (Plasma, recente)
-    # potrebbero avere simbolo/exchange diverso.
     {"id": "PEPE", "coinalyze": "1000PEPEUSDT_PERP.A", "binance": "1000PEPEUSDT"},
-    {"id": "RAY", "coinalyze": "RAYUSDT_PERP.A", "binance": "RAYUSDT"},
     {"id": "XPL", "coinalyze": "XPLUSDT_PERP.A", "binance": None},
+    # RAY (Raydium) rimosso: non coperto da Coinalyze sui perpetui (dava "dati assenti").
 ]
 
 T = {
