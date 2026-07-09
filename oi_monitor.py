@@ -163,7 +163,10 @@ TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "").strip()
 TG_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
 HTTP_TIMEOUT = 25
-BATCH_SIZE = 7
+# BATCH_SIZE 10 (da 7): con 48 asset il numero di chiamate history torna uguale a
+# quello che 30 asset facevano con batch 7 -> stesso carico, niente 429 a raffica.
+# Gli endpoint snapshot (funding/open-interest) accettano gia' tutti i simboli insieme.
+BATCH_SIZE = 10
 SLEEP_BETWEEN = 6
 SLEEP_BETWEEN_BATCHES = 8
 
