@@ -100,6 +100,10 @@ T = {
 
 EMA_FAST_4H = 12
 EMA_SLOW_4H = 50
+# EMA ultra-veloce: SOLO riferimento per l'uscita-esaurimento (non cambia la
+# definizione di trend, che resta 12/50). Serve a capire prima quando un movimento
+# esteso sta invertendo, senza aspettare che la 12 incroci la 50.
+EMA_ULTRA_FAST_4H = 8
 EMA_MACRO_1D = 200
 
 # === SISTEMA A TIER: ogni asset appartiene a una categoria con soglie diverse ===
@@ -344,6 +348,8 @@ def compute_trend(klines4h, klines1d, current_price):
         label = "PULLBACK DOWN"
     else:
         label = "CHOP"
+    ema_ultra = compute_ema(closes4h, EMA_ULTRA_FAST_4H)
+    dist_ultra = ((current_price - ema_ultra) / ema_ultra) * 100 if ema_ultra else None
     return {
         "label": label,
         "emaFast": ema_fast,
@@ -352,6 +358,8 @@ def compute_trend(klines4h, klines1d, current_price):
         "emaMacroPeriod": ema_macro_period,
         "fastVsSlow": fast_vs_slow,
         "aboveMacro": above_macro,
+        "ema8": ema_ultra,           # riferimento uscita-esaurimento
+        "distUltra": dist_ultra,     # % prezzo vs EMA 8 (isteresi sull'uscita)
     }
 
 
@@ -999,6 +1007,30 @@ CONF_WEIGHTS = {
 }
 
 
+def _exhaustion_reversal(direction, trend, vwap_w, delta):
+    """USCITA PER ESAURIMENTO (porta solo a NEUTRAL, mai flip). Un movimento ESTESO
+    (prezzo oltre ±4% dalla VWAP settimanale = sceso/salito tanto) che INVERTE, con
+    DOPPIA conferma: prezzo che riprende la EMA 8 con margine (isteresi ±0.5%) +
+    delta reale che smette di spingere contro. Solo per USCIRE prima senza aspettare
+    che la EMA 12/50 giri. Simmetrico long/short. Per RIENTRARE serve tornare oltre la
+    EMA 8 dall'altro lato (il ribasso/rialzo deve riprendere): niente ping-pong.
+    Soglie 'al centro' (tarabili): estensione 4%, isteresi 0.5%, delta -0.02/+0.02."""
+    if not trend or not vwap_w or not delta:
+        return False
+    vd = vwap_w.get("distance")      # % prezzo vs VWAP settimanale
+    du = trend.get("distUltra")      # % prezzo vs EMA 8
+    dr = delta.get("ratio")          # delta reale [-1, +1]
+    if vd is None or du is None or dr is None:
+        return False
+    if direction == "SHORT":
+        # sceso tanto (>4% sotto VWAP) + ripreso sopra EMA8 (+0.5%) + vendita esaurita
+        return vd < -4.0 and du > 0.5 and dr > -0.02
+    if direction == "LONG":
+        # salito tanto (>4% sopra VWAP) + perso la EMA8 (-0.5%) + acquisti esauriti
+        return vd > 4.0 and du < -0.5 and dr < 0.02
+    return False
+
+
 def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
                                    current_price, oi_change_4h=None,
                                    funding=None, lsr=None, thresholds=None,
@@ -1033,6 +1065,11 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
     else:
         # Trend piatto (CHOP/PULLBACK): si affida alla matrice OI (range, build-up, ecc.)
         direction = matrix_action
+
+    # USCITA PER ESAURIMENTO: un movimento esteso che inverte va a NEUTRAL subito,
+    # senza aspettare che la EMA 12/50 giri. Solo per uscire (mai flip). Vedi helper.
+    if direction in ("LONG", "SHORT") and _exhaustion_reversal(direction, trend, vwap_w, delta):
+        return ("NEUTRAL", "weak", 0, 0)
 
     if direction == "NEUTRAL":
         return ("NEUTRAL", "weak", 0, 0)
@@ -1453,6 +1490,10 @@ def _structure_broken(direction, data):
     reggano — elimina i trade-spezzone da 1-2h e misura lo swing vero."""
     if not data:
         return False  # niente dati: non chiudere per prudenza
+    # Uscita per esaurimento: movimento esteso che inverte (EMA8 + delta) -> chiudi
+    # prima, senza aspettare che l'EMA 12/50 giri. Stessa condizione del segnale.
+    if _exhaustion_reversal(direction, data.get("trend"), data.get("vwapW"), data.get("delta")):
+        return True
     tlabel = (data.get("trend") or {}).get("label")
     vw = data.get("vwapW") or {}
     above_vwap = vw.get("above")
