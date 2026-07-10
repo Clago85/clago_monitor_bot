@@ -4,7 +4,7 @@
 import os
 import json
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 try:
     from zoneinfo import ZoneInfo
     ITALY_TZ = ZoneInfo("Europe/Rome")
@@ -73,8 +73,8 @@ ASSETS = [
     {"id": "POL", "coinalyze": "POLUSDT_PERP.A", "binance": "POLUSDT"},
     {"id": "EIGEN", "coinalyze": "EIGENUSDT_PERP.A", "binance": "EIGENUSDT"},
     {"id": "PEPE", "coinalyze": "1000PEPEUSDT_PERP.A", "binance": "1000PEPEUSDT"},
+    {"id": "RAY", "coinalyze": "RAYUSDT_PERP.A", "binance": "RAYUSDT"},
     {"id": "XPL", "coinalyze": "XPLUSDT_PERP.A", "binance": None},
-    # RAY (Raydium) rimosso: non coperto da Coinalyze sui perpetui (dava "dati assenti").
 ]
 
 T = {
@@ -540,6 +540,42 @@ def compute_vwap(klines, bars):
     return {"vwap": vwap, "distance": dist, "above": last_close > vwap, "bars": len(tail)}
 
 
+def compute_weekly_bias(klines4h, current_price):
+    """Bias settimanale per swing (peso leggero, conferma): weekly open (apertura
+    lunedi' 00:00 UTC) + Monday high/low (range del lunedi'). Il lunedi' il range si
+    sta ancora formando -> NON attivo; diventa utilizzabile da martedi' 00:00 UTC.
+    Ritorna dict {active, weeklyOpen, mondayHigh/Low, bias LONG/SHORT/NEUTRAL} o None.
+    bias LONG = prezzo sopra weekly open E sopra Monday high; SHORT = sotto entrambi;
+    NEUTRAL = dentro il range (non informa la direzione)."""
+    if not klines4h or current_price is None:
+        return None
+    now = datetime.now(timezone.utc)
+    monday = (now - timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+    monday_ts = int(monday.timestamp())
+    tuesday_ts = monday_ts + 24 * 3600
+    if now.timestamp() < tuesday_ts:        # e' ancora lunedi': range non chiuso
+        return {"active": False}
+    mon = [k for k in klines4h if monday_ts <= _kline_val(k, "t") < tuesday_ts]
+    if not mon:
+        return {"active": False}
+    weekly_open = _kline_val(mon[0], "o")
+    monday_high = max(_kline_val(k, "h") for k in mon)
+    monday_low = min(_kline_val(k, "l") for k in mon)
+    if weekly_open <= 0 or monday_high <= 0:
+        return {"active": False}
+    if current_price > weekly_open and current_price > monday_high:
+        bias = "LONG"
+    elif current_price < weekly_open and current_price < monday_low:
+        bias = "SHORT"
+    else:
+        bias = "NEUTRAL"
+    return {
+        "active": True, "bias": bias,
+        "weeklyOpen": weekly_open, "mondayHigh": monday_high, "mondayLow": monday_low,
+        "aboveOpen": current_price > weekly_open,
+    }
+
+
 def compute_delta(klines, bars=6):
     """Delta REALE compratori-venditori dalle candele Coinalyze.
     Coinalyze OHLCV espone 'v' (volume totale) e 'bv' (buy volume).
@@ -761,6 +797,8 @@ def fetch_all_via_coinalyze():
             # Delta reale buy/sell (da campo bv di Coinalyze), ultime 3 candele 4h (~12h).
             # 3 candele invece di 6: più reattivo, non si media a zero come prima.
             delta = compute_delta(k4h, bars=3)
+            # Bias settimanale: weekly open + Monday range (conferma swing, da martedì)
+            weekly_bias = compute_weekly_bias(k4h, current_price)
             result[aid] = {
                 "source": "Coinalyze",
                 "source_symbol": sym,
@@ -782,6 +820,7 @@ def fetch_all_via_coinalyze():
                 "vwapW": vwap_w,
                 "vwapM": vwap_m,
                 "delta": delta,
+                "weeklyBias": weekly_bias,
             }
         except Exception as e:
             result[aid] = {"error": f"parse error: {e}"}
@@ -949,6 +988,7 @@ CONF_WEIGHTS = {
     "delta": 3,    # delta reale buy/sell — ANTICIPATORE (si muove per primo): peso alto per reattività
     "fvg": 1,      # gap di prezzo a favore
     "vwap_m": 1,   # prezzo vs VWAP mensile (filtro trend macro)
+    "weekly_bias": 1,  # LEGGERO: weekly open + Monday range (conferma swing, da martedi')
     # --- I due sotto NON danno bonus: sono PENALITÀ contrarian agli estremi ---
     "funding": 2,  # PENALITÀ se funding bollente/gelido contro il trade
     "lsr": 1,      # PENALITÀ se L/S retail troppo carico nel verso del trade
@@ -959,7 +999,7 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
                                    current_price, oi_change_4h=None,
                                    funding=None, lsr=None, thresholds=None,
                                    vwap_w=None, vwap_m=None, delta=None,
-                                   px_change_24h=None):
+                                   px_change_24h=None, weekly_bias=None):
     """Confluenza PESATA: ogni fattore contribuisce con il suo peso se è d'accordo
     con la direzione. La forza dipende dalla frazione di peso a favore (score/total).
     I fattori mancanti vengono esclusi dal totale, così non penalizzano a vuoto."""
@@ -1073,6 +1113,16 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
             score += W["fvg"]
         elif direction == "SHORT" and fvg.get("above"):
             score += W["fvg"]
+
+    # 7) BIAS SETTIMANALE (weekly open + Monday range) — peso 1, LEGGERO.
+    # Attivo solo da martedi' (lunedi' il range non e' chiuso). Conta solo quando e'
+    # direzionale (LONG/SHORT, cioe' prezzo fuori dal range del lunedi'): +peso se
+    # allineato alla direzione del trade, altrimenti 0 ma entra nel totale (freno
+    # morbido per diluizione). Dentro il range (NEUTRAL) non lo contiamo: non informa.
+    if weekly_bias and weekly_bias.get("active") and weekly_bias.get("bias") in ("LONG", "SHORT"):
+        total += W["weekly_bias"]
+        if weekly_bias["bias"] == direction:
+            score += W["weekly_bias"]
 
     # === FILTRI CONTRARIAN (solo PENALITÀ agli estremi) ===
     # Funding e L/S NON danno bonus quando sono normali (non entrano in `total`):
@@ -1529,6 +1579,7 @@ def main():
                 vwap_m=data.get("vwapM"),
                 delta=data.get("delta"),
                 px_change_24h=data.get("priceChange24h"),
+                weekly_bias=data.get("weeklyBias"),
             )
             curr_label = f"{action}_{strength}"
             prev_entry = last_state.get(asset_id, {})
