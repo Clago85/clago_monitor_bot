@@ -399,7 +399,11 @@ def compute_rvol(klines, lookback=20):
     avg = sum(vols[:lookback]) / lookback
     if avg <= 0:
         return None
-    return {"ratio": current / avg, "current": current, "avg": avg}
+    # closedRatio = volume dell'ultima candela CHIUSA (completa) vs media. E' stabile
+    # dentro la candela (non dipende da quanto siamo avanti), a differenza di `ratio`
+    # che usa la candela in formazione (a inizio candela e' vuota per tutti).
+    closed = vols[-2] if len(vols) >= 2 else current
+    return {"ratio": current / avg, "closedRatio": closed / avg, "current": current, "avg": avg}
 
 
 def detect_fvgs(klines, current_price):
@@ -999,7 +1003,7 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
                                    current_price, oi_change_4h=None,
                                    funding=None, lsr=None, thresholds=None,
                                    vwap_w=None, vwap_m=None, delta=None,
-                                   px_change_24h=None, weekly_bias=None):
+                                   px_change_24h=None, weekly_bias=None, rvol=None):
     """Confluenza PESATA: ogni fattore contribuisce con il suo peso se è d'accordo
     con la direzione. La forza dipende dalla frazione di peso a favore (score/total).
     I fattori mancanti vengono esclusi dal totale, così non penalizzano a vuoto."""
@@ -1170,6 +1174,17 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
         elif frac >= 0.52:
             strength = "moderate"
         else:
+            return ("NEUTRAL", "weak", round(score), round(total))
+
+    # === GUARD LIQUIDITÀ (volume fantasma) ===
+    # Se l'ultima candela 4h CHIUSA ha volume molto sotto la media (< 30%), il mercato
+    # è fermo/illiquido e il segnale è poco affidabile (OBV/POC su volume sottile valgono
+    # poco — es. EIGEN). Usa la candela CHIUSA, non quella in formazione (che a inizio
+    # candela è vuota per tutti). strong/full -> moderate; moderate -> NEUTRAL.
+    if rvol and rvol.get("closedRatio") is not None and rvol["closedRatio"] < 0.30:
+        if strength in ("full", "strong"):
+            strength = "moderate"
+        elif strength == "moderate":
             return ("NEUTRAL", "weak", round(score), round(total))
 
     # === BLOCCO CONTRO-TREND (24h) ===
@@ -1580,6 +1595,7 @@ def main():
                 delta=data.get("delta"),
                 px_change_24h=data.get("priceChange24h"),
                 weekly_bias=data.get("weeklyBias"),
+                rvol=data.get("rvol"),
             )
             curr_label = f"{action}_{strength}"
             prev_entry = last_state.get(asset_id, {})
