@@ -1293,19 +1293,40 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
     return (direction, strength, round(score), round(total))
 
 
+# ============================================================================
+# FILTRI OPERATIVI (taratura sui 500 trade storici)
+#   - moderate: 45% di direzione corretta = rumore -> niente alert Telegram,
+#     restano in state.json solo per l'ampiezza di flusso
+#   - strong: 61% direzione corretta, PF 1.23 senza flip -> gli unici operativi
+#   - flip diretto LONG<->SHORT: 27 trade, 0 vinti, media -3.07% -> vietato
+# ============================================================================
+NOTIFY_STRONG_ONLY = True   # alert Telegram solo sui segnali strong/full
+NOTIFY_EXITS = True         # avvisa anche quando una posizione strong si chiude
+ANTI_FLIP = True            # mai inversione diretta: passa da NEUTRAL almeno un run
+
+_STRENGTHS = {"weak": 0, "moderate": 1, "strong": 2, "full": 3}
+
+
+def _is_operative(strength):
+    """Un segnale genera alert solo se abbastanza forte (vedi filtri sopra)."""
+    return (not NOTIFY_STRONG_ONLY) or strength in ("strong", "full")
+
+
 def should_notify(prev_label, curr_label):
     if prev_label == curr_label:
         return False
     prev_a, prev_s = prev_label.split("_") if "_" in prev_label else (prev_label, "weak")
     curr_a, curr_s = curr_label.split("_") if "_" in curr_label else (curr_label, "weak")
+    # USCITA: una posizione operativa che va a NEUTRAL va comunicata
+    if NOTIFY_EXITS and prev_a in ("LONG", "SHORT") and curr_a == "NEUTRAL" and _is_operative(prev_s):
+        return True
     if prev_a == "NEUTRAL" and curr_a in ("LONG", "SHORT"):
-        return True
+        return _is_operative(curr_s)
     if (prev_a == "LONG" and curr_a == "SHORT") or (prev_a == "SHORT" and curr_a == "LONG"):
-        return True
+        return _is_operative(curr_s)
     if prev_a == curr_a and prev_a in ("LONG", "SHORT"):
-        strengths = {"weak": 0, "moderate": 1, "strong": 2, "full": 3}
-        if strengths.get(curr_s, 0) > strengths.get(prev_s, 0):
-            return True
+        if _STRENGTHS.get(curr_s, 0) > _STRENGTHS.get(prev_s, 0):
+            return _is_operative(curr_s)
     return False
 
 
@@ -1641,9 +1662,21 @@ def main():
             curr_label = f"{action}_{strength}"
             prev_entry = last_state.get(asset_id, {})
             prev_label = prev_entry.get("label")
+            # ANTI-FLIP: mai passare direttamente da LONG a SHORT (o viceversa).
+            # L'inversione diretta cade nel punto di massima confusione del mercato:
+            # storicamente 27 trade chiusi cosi', 0 vinti, media -3.07%.
+            # Si passa da NEUTRAL per almeno un run: il vecchio trade si chiude come
+            # "struttura" e il nuovo si apre solo se il segnale regge al run dopo.
+            if ANTI_FLIP and prev_label:
+                prev_dir = prev_label.split("_")[0] if "_" in prev_label else prev_label
+                if prev_dir in ("LONG", "SHORT") and action in ("LONG", "SHORT") and action != prev_dir:
+                    action, strength = "NEUTRAL", "weak"
+                    curr_label = "NEUTRAL_weak"
+                    print(f"  [ANTI-FLIP] {asset_id}: inversione diretta bloccata, passo da NEUTRAL", flush=True)
             transition_logged = False
             is_transition = prev_label and should_notify(prev_label, curr_label)
-            is_new_active = (not prev_label) and (not is_first_run) and action in ("LONG", "SHORT")
+            is_new_active = ((not prev_label) and (not is_first_run)
+                             and action in ("LONG", "SHORT") and _is_operative(strength))
             # Cambio di stato "generico": qualsiasi variazione di label (include
             # anche uscite a NEUTRAL e indebolimenti, che NON generano alert Telegram).
             label_changed = bool(prev_label) and (prev_label != curr_label)
