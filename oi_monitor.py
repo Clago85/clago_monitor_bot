@@ -1304,6 +1304,27 @@ NOTIFY_STRONG_ONLY = True   # alert Telegram solo sui segnali strong/full
 NOTIFY_EXITS = True         # avvisa anche quando una posizione strong si chiude
 ANTI_FLIP = True            # mai inversione diretta: passa da NEUTRAL almeno un run
 
+# FILTRO AMPIEZZA DI MERCATO: niente ingressi controcorrente quando il mercato si
+# muove in blocco. Misurato su 42 trade nati dopo il riavvio del 26/07: i LONG
+# aperti durante una discesa generale hanno chiuso con PF 0.06 (19 trade), gli
+# SHORT nella stessa fase PF 1.20 (23 trade). Blocca solo le APERTURE nuove:
+# le posizioni gia' aperte restano gestite dalla struttura come sempre.
+BREADTH_FILTER = True
+BREADTH_LONG_MIN = 25.0   # se meno del 25% delle coin e' in rialzo 24h -> niente nuovi LONG
+BREADTH_SHORT_MAX = 75.0  # se piu' del 75% e' in rialzo -> niente nuovi SHORT
+
+
+def compute_market_breadth(all_data):
+    """Percentuale di coin dell'universo in rialzo sulle 24h.
+    E' la fotografia del flusso: 10% = discesa generalizzata, 90% = melt-up.
+    Restituisce None se i dati validi sono troppo pochi per essere significativi."""
+    vals = [d.get("priceChange24h") for d in all_data.values()
+            if isinstance(d, dict) and not d.get("error")]
+    vals = [v for v in vals if isinstance(v, (int, float))]
+    if len(vals) < 10:
+        return None
+    return sum(1 for v in vals if v > 0) / len(vals) * 100.0
+
 _STRENGTHS = {"weak": 0, "moderate": 1, "strong": 2, "full": 3}
 
 
@@ -1632,6 +1653,9 @@ def main():
         print(f"[FATAL] Coinalyze fetch fallito: {e}", flush=True)
         save_json(PENDING_ALERTS_FILE, [f"⚠️ <b>OI Monitor errore</b>\n\nCoinalyze fetch fallito:\n<code>{str(e)[:300]}</code>"])
         return
+    market_breadth = compute_market_breadth(all_data)
+    if market_breadth is not None:
+        print(f"[BREADTH] {market_breadth:.0f}% delle coin in rialzo 24h", flush=True)
     for asset in ASSETS:
         asset_id = asset["id"]
         data = all_data.get(asset_id, {"error": "no data"})
@@ -1673,6 +1697,18 @@ def main():
                     action, strength = "NEUTRAL", "weak"
                     curr_label = "NEUTRAL_weak"
                     print(f"  [ANTI-FLIP] {asset_id}: inversione diretta bloccata, passo da NEUTRAL", flush=True)
+            # FILTRO AMPIEZZA: non aprire contro un mercato che si muove in blocco.
+            # Agisce solo se non c'e' gia' una posizione aperta nella stessa direzione
+            # (cioe' blocca le nuove entrate, non la gestione di quelle in corso).
+            if BREADTH_FILTER and market_breadth is not None:
+                prev_dir_b = prev_label.split("_")[0] if (prev_label and "_" in prev_label) else "NEUTRAL"
+                if action != prev_dir_b:
+                    if action == "LONG" and market_breadth < BREADTH_LONG_MIN:
+                        action, strength, curr_label = "NEUTRAL", "weak", "NEUTRAL_weak"
+                        print(f"  [BREADTH] {asset_id}: LONG bloccato ({market_breadth:.0f}% in rialzo)", flush=True)
+                    elif action == "SHORT" and market_breadth > BREADTH_SHORT_MAX:
+                        action, strength, curr_label = "NEUTRAL", "weak", "NEUTRAL_weak"
+                        print(f"  [BREADTH] {asset_id}: SHORT bloccato ({market_breadth:.0f}% in rialzo)", flush=True)
             transition_logged = False
             is_transition = prev_label and should_notify(prev_label, curr_label)
             is_new_active = ((not prev_label) and (not is_first_run)
