@@ -1595,8 +1595,18 @@ def update_performance(new_state, last_state):
             tr["last_price"] = pc
             tr["pnl_pct"] = round(favor, 2)  # P&L a favore corrente
             tr["last_ts"] = now
-            tr["max_favor"] = round(max(tr.get("max_favor", favor), favor), 2)
-            tr["min_favor"] = round(min(tr.get("min_favor", favor), favor), 2)
+            # PICCO: oltre al valore massimo registro QUANDO e a che prezzo è avvenuto.
+            # Serve per misurare con precisione quanto viene restituito dai massimi e
+            # per poter simulare un eventuale trailing sui dati reali (non a stima).
+            prev_peak = tr.get("max_favor", favor)
+            tr["max_favor"] = round(max(prev_peak, favor), 2)
+            if favor > prev_peak or "peak_ts" not in tr:
+                tr["peak_ts"] = now
+                tr["peak_price"] = pc
+            prev_trough = tr.get("min_favor", favor)
+            tr["min_favor"] = round(min(prev_trough, favor), 2)
+            if favor < prev_trough or "trough_ts" not in tr:
+                tr["trough_ts"] = now
         # Chiusura per ROTTURA STRUTTURA (non per semplice NEUTRAL).
         # Eccezione: se il segnale si è GIRATO in direzione opposta, chiudi comunque.
         flipped = d_now in ("LONG", "SHORT") and d_now != direction
@@ -1609,6 +1619,13 @@ def update_performance(new_state, last_state):
             tr["close_price"] = pc
             tr["duration_h"] = round((now - tr["entry_ts"]) / 3600, 1)
             tr["result_pct"] = tr.get("pnl_pct", 0.0)
+            # RESTITUZIONE: quanto del massimo è stato lasciato sul tavolo, in punti
+            # e in quota del picco. giveback_share = 1.0 significa aver restituito tutto.
+            _peak = tr.get("max_favor", 0.0) or 0.0
+            _res = tr.get("result_pct", 0.0) or 0.0
+            tr["giveback_pct"] = round(_peak - _res, 2)
+            tr["giveback_share"] = round((_peak - _res) / _peak, 2) if _peak > 0 else 0.0
+            tr["hours_after_peak"] = round((now - tr.get("peak_ts", tr["entry_ts"])) / 3600, 1)
             tr["outcome"] = "win" if tr.get("pnl_pct", 0) > 0 else "loss"
             tr["closed_to"] = d_now
             tr["close_reason"] = "flip" if flipped else "struttura"
