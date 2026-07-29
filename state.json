@@ -2,220 +2,214 @@
   "BTC": {
     "label": "NEUTRAL_weak",
     "bias": "NEUTRAL",
-    "signal": "PIATTO",
-    "ts": 1785298819,
+    "signal": "PARZIALE",
+    "ts": 1785313229,
     "since_ts": 1785284429,
     "confluence": {
-      "score": 11,
+      "score": 7,
       "total": 17
     },
     "data": {
-      "price": 63672.2,
-      "px24h": 0.5506644452691293,
-      "px4h": -0.3993586484689733,
-      "oi24h": -1.9091260445155331,
-      "oi4h": 0.4470752937411134,
+      "price": 64346.1,
+      "px24h": 1.4895499647485817,
+      "px4h": 0.6285167380309731,
+      "oi24h": -1.5901906674089872,
+      "oi4h": 0.511230548837501,
       "funding": 0.0,
-      "lsr": 1.6896,
+      "lsr": 1.5208,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 63946.39202777476,
-        "emaSlow": 64453.37539682333,
-        "emaMacro": 64453.37539682333,
+        "emaFast": 64131.722247976555,
+        "emaSlow": 64483.92617721229,
+        "emaMacro": 64483.92617721229,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 63826.756871801284,
-        "distUltra": -0.24215059541834671
+        "ema8": 64106.892381771366,
+        "distUltra": 0.3731386896811284
       },
       "obv": {
-        "obvChange": -102.14697469662283,
-        "priceChange": -2.9473828759755523,
+        "obvChange": -78.52285067245589,
+        "priceChange": -2.726136482138344,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.09549076622962108,
-        "closedRatio": 1.0902126208216165,
-        "current": 1829.998999999993,
-        "avg": 19164.146150000524
+        "ratio": 0.1503953561962115,
+        "closedRatio": 1.1263998931285562,
+        "current": 3017.605,
+        "avg": 20064.48255000053
       },
       "fvg": {
-        "above": {
-          "type": "bear",
-          "top": 64479.0,
-          "bottom": 63794.3,
-          "size": 1.0732933820106139,
-          "distance": 0.19176343836086365
-        },
+        "above": null,
         "below": {
           "type": "bull",
-          "top": 62489.7,
-          "bottom": 62333.4,
-          "size": 0.25074839492149575,
-          "distance": -1.8571684345758435
+          "top": 64327.9,
+          "bottom": 64175.0,
+          "size": 0.23825477210752077,
+          "distance": -0.02828454249752058
         },
         "count": 2
       },
       "poc": {
         "poc": 64032.906500000005,
-        "vah": 65735.198,
-        "val": 63087.189,
+        "vah": 65681.157,
+        "val": 63141.23,
         "rangeHigh": 66924.1,
         "rangeLow": 61520.0,
-        "distance": 0.5665054764873957,
+        "distance": -0.4867326846537614,
         "inValueArea": true
       },
       "vwapW": {
-        "vwap": 64656.77199689761,
-        "distance": -1.6223698840825802,
+        "vwap": 64613.0539105191,
+        "distance": -0.3868473866987533,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 64172.47818192091,
-        "distance": -0.8799382506627136,
-        "above": false,
+        "vwap": 64177.57915378418,
+        "distance": 0.28907423536694715,
+        "above": true,
         "bars": 130
       },
       "delta": {
-        "lastDelta": 30.113000000001875,
-        "cumDelta": 3302.7620000007046,
-        "ratio": 0.087302338338163,
+        "lastDelta": -866.683000000015,
+        "cumDelta": 1868.034000001593,
+        "ratio": 0.0401630745951366,
         "bars": 3
       }
     }
   },
   "ETH": {
-    "label": "NEUTRAL_weak",
+    "label": "LONG_moderate",
     "bias": "NEUTRAL",
-    "signal": "PIATTO",
-    "ts": 1785298819,
-    "since_ts": 1785298819,
+    "signal": "PARZIALE",
+    "ts": 1785313229,
+    "since_ts": 1785313229,
     "confluence": {
-      "score": 0,
-      "total": 0
+      "score": 8,
+      "total": 17
     },
     "data": {
-      "price": 1888.61,
-      "px24h": 0.5478299757229845,
-      "px4h": -1.446514953061322,
-      "oi24h": -1.1534822354769203,
-      "oi4h": -0.8392339083099075,
+      "price": 1915.35,
+      "px24h": 1.686141888627567,
+      "px4h": 0.5633669708393285,
+      "oi24h": -1.4071648098396485,
+      "oi4h": 0.3273173081337141,
       "funding": 0.0,
-      "lsr": 2.0979,
+      "lsr": 2.0779,
       "lsrSource": "coinalyze",
       "trend": {
-        "label": "PULLBACK DOWN",
-        "emaFast": 1904.4003848946693,
-        "emaSlow": 1895.996056831548,
-        "emaMacro": 1895.996056831548,
+        "label": "TREND UP",
+        "emaFast": 1911.1443493395166,
+        "emaSlow": 1898.1338567216794,
+        "emaMacro": 1898.1338567216794,
         "emaMacroPeriod": 50,
         "fastVsSlow": true,
-        "aboveMacro": false,
-        "ema8": 1902.2483318200304,
-        "distUltra": -0.7169585375313055
+        "aboveMacro": true,
+        "ema8": 1911.8778383291594,
+        "distUltra": 0.18161001718995248
       },
       "obv": {
-        "obvChange": -95.26361534710793,
-        "priceChange": -2.1030112004818755,
+        "obvChange": -33855.06702866262,
+        "priceChange": -0.9264000744844205,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.171448993266029,
-        "closedRatio": 0.9440119637442274,
-        "current": 110517.99399999998,
-        "avg": 644611.5074500007
+        "ratio": 0.10474866985369005,
+        "closedRatio": 1.0540394890229547,
+        "current": 70562.2739999999,
+        "avg": 673634.081450001
       },
       "fvg": {
         "above": {
           "type": "bear",
-          "top": 1903.03,
-          "bottom": 1895.17,
-          "size": 0.41473851949956464,
-          "distance": 0.3473454021740949
+          "top": 1955.46,
+          "bottom": 1954.48,
+          "size": 0.05014121403135454,
+          "distance": 2.0429686480277813
         },
         "below": {
           "type": "bull",
           "top": 1793.34,
           "bottom": 1792.77,
           "size": 0.03179437406917431,
-          "distance": -5.04445068065932
+          "distance": -6.3701151225624555
         },
-        "count": 3
+        "count": 2
       },
       "poc": {
         "poc": 1878.22325,
         "vah": 1955.045,
-        "val": 1817.5745,
+        "val": 1820.27,
         "rangeHigh": 1982.0,
         "rangeLow": 1712.45,
-        "distance": -0.5499679658584828,
+        "distance": -1.9383794084632002,
         "inValueArea": true
       },
       "vwapW": {
-        "vwap": 1908.047546568909,
-        "distance": -1.1916656170228117,
-        "above": false,
+        "vwap": 1907.998677315827,
+        "distance": 0.386862044084699,
+        "above": true,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 1857.9008580968432,
-        "distance": 1.475274731894658,
+        "vwap": 1859.1600356114766,
+        "distance": 3.0239443249452598,
         "above": true,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -5729.721999999849,
-        "cumDelta": -8060.479000000516,
-        "ratio": -0.006748676064003978,
+        "lastDelta": -12847.092000000022,
+        "cumDelta": -4416.376000009477,
+        "ratio": -0.0031792612972072307,
         "bars": 3
       }
     }
   },
   "SOL": {
-    "label": "SHORT_strong",
+    "label": "SHORT_moderate",
     "bias": "NEUTRAL",
     "signal": "PARZIALE",
-    "ts": 1785298819,
-    "since_ts": 1785298819,
+    "ts": 1785313229,
+    "since_ts": 1785313229,
     "confluence": {
-      "score": 12,
-      "total": 18
+      "score": 11,
+      "total": 17
     },
     "data": {
-      "price": 72.97,
-      "px24h": -0.2460697197539396,
-      "px4h": -1.0576271186440693,
-      "oi24h": -1.8221807090828335,
-      "oi4h": 0.9344495202298045,
+      "price": 73.95,
+      "px24h": 0.8730050470604291,
+      "px4h": 0.7355946056395672,
+      "oi24h": -2.828172178155,
+      "oi4h": -0.8519796900042887,
       "funding": 0.0,
-      "lsr": 2.6603,
+      "lsr": 2.6023,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 73.964211724316,
-        "emaSlow": 75.18920102419659,
-        "emaMacro": 75.18920102419659,
+        "emaFast": 74.13906672461846,
+        "emaSlow": 75.18910548865226,
+        "emaMacro": 75.18910548865226,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 73.67343027173095,
-        "distUltra": -0.9547950585936854
+        "ema8": 73.96995193974135,
+        "distUltra": -0.026973033263020606
       },
       "obv": {
-        "obvChange": -102.59676020874868,
-        "priceChange": -6.781829814459386,
+        "obvChange": -118.44495661277286,
+        "priceChange": -5.832166051190626,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.24113909492413718,
-        "closedRatio": 0.9589162043043804,
-        "current": 579989.0399999982,
-        "avg": 2405205.3450000044
+        "ratio": 0.09573522079460708,
+        "closedRatio": 0.9662072932004905,
+        "current": 237379.33000000066,
+        "avg": 2479540.2155000055
       },
       "fvg": {
         "above": {
@@ -223,7 +217,7 @@
           "top": 75.1,
           "bottom": 74.26,
           "size": 1.131160786426056,
-          "distance": 1.7678498012882091
+          "distance": 0.41920216362407337
         },
         "below": null,
         "count": 2
@@ -231,28 +225,28 @@
       "poc": {
         "poc": 77.6215,
         "vah": 78.3188,
-        "val": 75.0892,
+        "val": 75.0158,
         "rangeHigh": 79.64,
         "rangeLow": 72.3,
-        "distance": 6.374537481156637,
+        "distance": 4.964841108857328,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 75.33374928035309,
-        "distance": -3.296994114961503,
+        "vwap": 75.27026582435658,
+        "distance": -1.7540336943108807,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 76.54888749600657,
-        "distance": -4.832059115424168,
+        "vwap": 76.47136612135802,
+        "distance": -3.297137542118279,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": 12724.000000002794,
-        "cumDelta": -48134.56999999331,
-        "ratio": -0.009551392874890393,
+        "lastDelta": -18241.629999999917,
+        "cumDelta": 51087.28999997396,
+        "ratio": 0.010342562567643569,
         "bars": 3
       }
     }
@@ -261,86 +255,86 @@
     "label": "SHORT_moderate",
     "bias": "NEUTRAL",
     "signal": "PARZIALE",
-    "ts": 1785298819,
+    "ts": 1785313229,
     "since_ts": 1785298819,
     "confluence": {
-      "score": 11,
-      "total": 18
+      "score": 8,
+      "total": 17
     },
     "data": {
-      "price": 8.31,
-      "px24h": -0.41941282204913294,
-      "px4h": -1.9006020540668114,
-      "oi24h": -0.7405384092994624,
-      "oi4h": -0.22082010343949135,
+      "price": 8.402,
+      "px24h": 1.0098581389757109,
+      "px4h": 0.5505026328386713,
+      "oi24h": 0.42497017371266077,
+      "oi4h": -0.10249722507653844,
       "funding": 0.0,
-      "lsr": 1.8637,
+      "lsr": 1.8466,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 8.40591675403244,
-        "emaSlow": 8.447046914783218,
-        "emaMacro": 8.447046914783218,
+        "emaFast": 8.425018318435995,
+        "emaSlow": 8.450576979223307,
+        "emaMacro": 8.450576979223307,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 8.376096766519174,
-        "distUltra": -0.7891117827503444
+        "ema8": 8.40805057149022,
+        "distUltra": -0.07196164483996681
       },
       "obv": {
-        "obvChange": -458.82558798647136,
-        "priceChange": -4.006948465547193,
+        "obvChange": -175.36507682707793,
+        "priceChange": -3.7893531768746365,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.21283767469750436,
-        "closedRatio": 1.008651933841869,
-        "current": 350537.61000000016,
-        "avg": 1646971.6204999979
+        "ratio": 0.06751917698247234,
+        "closedRatio": 0.7499047555381159,
+        "current": 113846.60999999988,
+        "avg": 1686137.4069999983
       },
       "fvg": {
         "above": {
           "type": "bear",
-          "top": 8.353,
-          "bottom": 8.344,
-          "size": 0.10786193672100122,
-          "distance": 0.4091456077015514
+          "top": 8.747,
+          "bottom": 8.658,
+          "size": 1.0279510279510329,
+          "distance": 3.0468935967626787
         },
         "below": {
           "type": "bull",
           "top": 8.197,
           "bottom": 7.994,
           "size": 2.539404553415054,
-          "distance": -1.359807460890509
+          "distance": -2.439895263032612
         },
-        "count": 5
+        "count": 4
       },
       "poc": {
         "poc": 8.365815,
         "vah": 8.82179,
-        "val": 8.09223,
+        "val": 8.13432,
         "rangeHigh": 8.92,
         "rangeLow": 7.517,
-        "distance": 0.6716606498194833,
+        "distance": -0.43067126874553313,
         "inValueArea": true
       },
       "vwapW": {
-        "vwap": 8.515484638222528,
-        "distance": -2.65967995768475,
+        "vwap": 8.511479020259246,
+        "distance": -1.2627537470681887,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 8.276254344020945,
-        "distance": 0.1540027100334678,
+        "vwap": 8.280270037154198,
+        "distance": 1.494274489728191,
         "above": true,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -83107.51000000007,
-        "cumDelta": -36725.29999998468,
-        "ratio": -0.011228631774888252,
+        "lastDelta": -31506.48999999997,
+        "cumDelta": -190763.43999999715,
+        "ratio": -0.06276124398438329,
         "bars": 3
       }
     }
@@ -348,163 +342,163 @@
   "ICP": {
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785298819,
     "confluence": {
       "score": 12,
       "total": 18
     },
     "data": {
-      "price": 2.067,
-      "px24h": -1.005747126436777,
-      "px4h": -2.6836158192090367,
-      "oi24h": 1.5395994393922097,
-      "oi4h": 0.23609739629663334,
+      "price": 2.075,
+      "px24h": -0.5749880210828946,
+      "px4h": -0.048169556840071764,
+      "oi24h": 1.1708425347079154,
+      "oi4h": 0.0724231459793288,
       "funding": 0.0,
-      "lsr": 1.7972,
+      "lsr": 1.6469,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 2.109472505169321,
-        "emaSlow": 2.1487299498516386,
-        "emaMacro": 2.1487299498516386,
+        "emaFast": 2.1079678593820477,
+        "emaSlow": 2.147000074651599,
+        "emaMacro": 2.147000074651599,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 2.098379289950798,
-        "distUltra": -1.4954060069632897
+        "ema8": 2.0982456205790156,
+        "distUltra": -1.1078598401935797
       },
       "obv": {
-        "obvChange": -25.95605952962306,
-        "priceChange": -6.994584837545137,
+        "obvChange": -21.01136703897674,
+        "priceChange": -6.4443442992338795,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.2538521943715779,
-        "closedRatio": 1.2702946779503523,
-        "current": 247785.0,
-        "avg": 976099.5
+        "ratio": 0.24964814528126547,
+        "closedRatio": 1.2447798844219917,
+        "current": 254709.0,
+        "avg": 1020271.95
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 2.103,
-          "bottom": 2.072,
-          "size": 1.4961389961390028,
-          "distance": 0.24189646831155745
+          "bottom": 2.091,
+          "size": 0.5738880918220951,
+          "distance": 0.7710843373493983
         },
         "below": null,
         "count": 3
       },
       "poc": {
         "poc": 2.167525,
-        "vah": 2.24335,
+        "vah": 2.25009,
         "val": 2.11529,
         "rangeHigh": 2.395,
         "rangeLow": 2.058,
-        "distance": 4.863328495403954,
+        "distance": 4.459036144578301,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 2.150168188821028,
-        "distance": -4.147033208128729,
+        "vwap": 2.147172681969299,
+        "distance": -3.3147162576613245,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 2.197162265409902,
-        "distance": -6.19718750651763,
+        "vwap": 2.1957409830162287,
+        "distance": -5.453329146853365,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": 10575.0,
-        "cumDelta": -191135.0,
-        "ratio": -0.08633177037153805,
+        "lastDelta": -142579.0,
+        "cumDelta": -246569.0,
+        "ratio": -0.08918610880120029,
         "bars": 3
       }
     }
   },
   "SUI": {
-    "label": "SHORT_strong",
+    "label": "SHORT_moderate",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
-    "since_ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
+    "since_ts": 1785313229,
     "confluence": {
-      "score": 14,
+      "score": 11,
       "total": 17
     },
     "data": {
-      "price": 0.6803,
-      "px24h": -0.4098960620699787,
-      "px4h": -1.8184442199451503,
-      "oi24h": -1.1956405230764526,
-      "oi4h": -0.3668177456790141,
+      "price": 0.687,
+      "px24h": 0.7922535211267712,
+      "px4h": 0.3945637878123682,
+      "oi24h": -2.058037600261578,
+      "oi4h": 0.6107271641045656,
       "funding": 0.0,
-      "lsr": 1.8337,
+      "lsr": 1.8377,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.6910934965697986,
-        "emaSlow": 0.7163737616862381,
-        "emaMacro": 0.7163737616862381,
+        "emaFast": 0.6916660947257626,
+        "emaSlow": 0.7155445090387859,
+        "emaMacro": 0.7155445090387859,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.6873317058401515,
-        "distUltra": -1.0230440092322424
+        "ema8": 0.6888579934312289,
+        "distUltra": -0.2697208203934884
       },
       "obv": {
-        "obvChange": -128.2587702112632,
-        "priceChange": -11.663629263212707,
+        "obvChange": -110.01806126778479,
+        "priceChange": -11.568652683052372,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.11133811449479136,
-        "closedRatio": 1.1156967407768863,
-        "current": 2550708.0999999973,
-        "avg": 22909567.955000035
+        "ratio": 0.09319989963760791,
+        "closedRatio": 0.7269360653627336,
+        "current": 2175031.0,
+        "avg": 23337267.620000035
       },
       "fvg": {
         "above": {
           "type": "bear",
-          "top": 0.688,
-          "bottom": 0.6827,
-          "size": 0.7763292807968319,
-          "distance": 0.35278553579302624
+          "top": 0.7121,
+          "bottom": 0.7062,
+          "size": 0.8354573775134387,
+          "distance": 2.79475982532751
         },
         "below": null,
-        "count": 6
+        "count": 5
       },
       "poc": {
         "poc": 0.740272,
         "vah": 0.767608,
-        "val": 0.717224,
+        "val": 0.718296,
         "rangeHigh": 0.7794,
         "rangeLow": 0.6722,
-        "distance": 8.815522563574897,
+        "distance": 7.754294032023287,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 0.7214904478627714,
-        "distance": -5.94470072193239,
+        "vwap": 0.7200840409591547,
+        "distance": -4.566694870136683,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.7344428196623236,
-        "distance": -7.603426457079205,
+        "vwap": 0.7341009432332652,
+        "distance": -6.388895650602937,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -380098.69999999646,
-        "cumDelta": -5085770.900000334,
-        "ratio": -0.11618813484721385,
+        "lastDelta": 111403.79999999795,
+        "cumDelta": -2249184.2000003606,
+        "ratio": -0.05031747435252433,
         "bars": 3
       }
     }
@@ -513,43 +507,43 @@
     "label": "SHORT_moderate",
     "bias": "NEUTRAL",
     "signal": "PIATTO",
-    "ts": 1785298819,
+    "ts": 1785313229,
     "since_ts": 1785270026,
     "confluence": {
-      "score": 8,
+      "score": 10,
       "total": 16
     },
     "data": {
-      "price": 0.06804,
-      "px24h": 0.191429833603306,
-      "px4h": -1.1477553392416084,
-      "oi24h": -2.139250588995335,
-      "oi4h": -0.32893126903209746,
+      "price": 0.06847,
+      "px24h": 0.9286556603773668,
+      "px4h": 0.08770647566145957,
+      "oi24h": -1.6476578931759491,
+      "oi4h": -0.47902081207005076,
       "funding": 0.0,
-      "lsr": 1.3326,
+      "lsr": 1.3685,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.06841847944898087,
-        "emaSlow": 0.06917582537560116,
-        "emaMacro": 0.06917582537560116,
+        "emaFast": 0.06850581397131054,
+        "emaSlow": 0.06917038568654701,
+        "emaMacro": 0.06917038568654701,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.06823198335103813,
-        "distUltra": -0.2813685629661547
+        "ema8": 0.06838833272981977,
+        "distUltra": 0.11941696327482339
       },
       "obv": {
-        "obvChange": 1.1589145753693157,
-        "priceChange": 1.2066140324743113,
+        "obvChange": -2.0102287436226245,
+        "priceChange": 1.364175563463826,
         "diverge": false,
-        "direction": 1
+        "direction": -1
       },
       "rvol": {
-        "ratio": 0.1267663460281948,
-        "closedRatio": 0.9893359914680262,
-        "current": 4780461.0,
-        "avg": 37710805.35
+        "ratio": 0.09588357739124194,
+        "closedRatio": 0.7635125942380473,
+        "current": 3619364.0,
+        "avg": 37747486.05
       },
       "fvg": {
         "above": null,
@@ -558,29 +552,29 @@
       },
       "poc": {
         "poc": 0.07010525,
-        "vah": 0.0711644,
+        "vah": 0.0712565,
         "val": 0.0666515,
         "rangeHigh": 0.07448,
         "rangeLow": 0.06527,
-        "distance": 3.0353468547912854,
+        "distance": 2.38827223601576,
         "inValueArea": true
       },
       "vwapW": {
-        "vwap": 0.07074919058387732,
-        "distance": -3.970632823773247,
+        "vwap": 0.0706998729305192,
+        "distance": -3.3095857651946883,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.06900549853884601,
-        "distance": -1.5440777349738224,
+        "vwap": 0.06897348618700264,
+        "distance": -0.8894521952092329,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -998255.0,
-        "cumDelta": -4305374.0,
-        "ratio": -0.06834747587789747,
+        "lastDelta": -981794.0,
+        "cumDelta": -3570656.0,
+        "ratio": -0.05119315338656768,
         "bars": 3
       }
     }
@@ -588,81 +582,81 @@
   "AR": {
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "CONFERMA",
-    "ts": 1785298819,
+    "signal": "PULLBACK",
+    "ts": 1785313229,
     "since_ts": 1785284429,
     "confluence": {
-      "score": 18,
+      "score": 15,
       "total": 18
     },
     "data": {
-      "price": 1.723,
-      "px24h": -4.224569205113943,
-      "px4h": -3.743016759776533,
-      "oi24h": 3.5909597402029503,
-      "oi4h": 2.364399724753814,
+      "price": 1.75,
+      "px24h": -2.2346368715083815,
+      "px4h": 0.8645533141210318,
+      "oi24h": 3.2939023404420253,
+      "oi4h": -0.2011432092198946,
       "funding": 0.0,
-      "lsr": 0.9853,
+      "lsr": 0.9294,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 1.7892314982112676,
-        "emaSlow": 1.846289445748455,
-        "emaMacro": 1.846289445748455,
+        "emaFast": 1.7874680724456873,
+        "emaSlow": 1.843720594017081,
+        "emaMacro": 1.843720594017081,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 1.7740830108508414,
-        "distUltra": -2.8794036433696624
+        "ema8": 1.7743855516494198,
+        "distUltra": -1.3743096378772734
       },
       "obv": {
-        "obvChange": -113.21217574006714,
-        "priceChange": -10.151753008895863,
+        "obvChange": -131.65826229062523,
+        "priceChange": -9.048361934477375,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.9809993357243147,
-        "closedRatio": 1.422389778140438,
-        "current": 211898.00000000032,
-        "avg": 216002.18499999976
+        "ratio": 0.09288295539352276,
+        "closedRatio": 1.7479124975065639,
+        "current": 21393.700000000015,
+        "avg": 230329.66499999975
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 1.774,
-          "bottom": 1.742,
-          "size": 1.8369690011481075,
-          "distance": 1.1027278003482244
+          "bottom": 1.752,
+          "size": 1.2557077625570787,
+          "distance": 0.11428571428571438
         },
         "below": null,
         "count": 4
       },
       "poc": {
-        "poc": 1.9891800000000002,
-        "vah": 2.00832,
-        "val": 1.8726,
+        "poc": 1.988965,
+        "vah": 2.01165,
+        "val": 1.87205,
         "rangeHigh": 2.064,
-        "rangeLow": 1.716,
-        "distance": 15.448636099825888,
+        "rangeLow": 1.715,
+        "distance": 13.655142857142863,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 1.842970048661792,
-        "distance": -6.835165267783955,
+        "vwap": 1.8399395686441038,
+        "distance": -4.942530189245251,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 1.9189649424534156,
-        "distance": -10.5246811958535,
+        "vwap": 1.9171938788778133,
+        "distance": -8.772919668211216,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -63799.200000000434,
-        "cumDelta": -174912.70000000123,
-        "ratio": -0.2597293042031977,
+        "lastDelta": 1220.299999999992,
+        "cumDelta": -133495.30000000022,
+        "ratio": -0.1825628930796112,
         "bars": 3
       }
     }
@@ -670,44 +664,44 @@
   "TAO": {
     "label": "SHORT_moderate",
     "bias": "SHORT SQUEEZE",
-    "signal": "PULLBACK",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785298819,
     "confluence": {
       "score": 9,
       "total": 17
     },
     "data": {
-      "price": 191.5,
-      "px24h": 2.0462538633699263,
-      "px4h": -3.2877127417807137,
-      "oi24h": -5.753941340746035,
-      "oi4h": -2.7536623448426436,
+      "price": 192.71,
+      "px24h": 2.954375467464473,
+      "px4h": 0.25491624180626843,
+      "oi24h": -6.649123076470366,
+      "oi4h": -0.10387644114190696,
       "funding": 0.0,
-      "lsr": 1.2336,
+      "lsr": 1.2763,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 191.83745253462794,
-        "emaSlow": 194.02137310289677,
-        "emaMacro": 194.02137310289677,
+        "emaFast": 192.36589178767403,
+        "emaSlow": 194.08138304246006,
+        "emaMacro": 194.08138304246006,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 191.57974036130307,
-        "distUltra": -0.04162254377873318
+        "ema8": 192.35609435508752,
+        "distUltra": 0.1839846281444978
       },
       "obv": {
-        "obvChange": 32.9599681585718,
-        "priceChange": -2.159971268790728,
+        "obvChange": 44.30443852511019,
+        "priceChange": -3.047216774777494,
         "diverge": true,
         "direction": 1
       },
       "rvol": {
-        "ratio": 0.1854250441713459,
-        "closedRatio": 1.527029642059115,
-        "current": 10460.370000000019,
-        "avg": 56412.92979999991
+        "ratio": 0.07365467750819937,
+        "closedRatio": 0.9231367649224724,
+        "current": 4306.117000000001,
+        "avg": 58463.59179999989
       },
       "fvg": {
         "above": {
@@ -715,42 +709,42 @@
           "top": 206.43,
           "bottom": 206.2,
           "size": 0.11154219204656557,
-          "distance": 7.676240208877279
+          "distance": 7.000155674329293
         },
         "below": {
           "type": "bull",
-          "top": 189.61,
-          "bottom": 187.98,
-          "size": 0.8671135227151952,
-          "distance": -0.9869451697127866
+          "top": 192.02,
+          "bottom": 190.18,
+          "size": 0.9675044694499966,
+          "distance": -0.358050957397124
         },
         "count": 3
       },
       "poc": {
         "poc": 198.0661,
-        "vah": 203.24620000000002,
+        "vah": 202.5778,
         "val": 189.2098,
         "rangeHigh": 216.28,
         "rangeLow": 182.86,
-        "distance": 3.428772845953006,
+        "distance": 2.779357583934408,
         "inValueArea": true
       },
       "vwapW": {
-        "vwap": 193.66912779798741,
-        "distance": -1.533092977567631,
+        "vwap": 193.60726237186026,
+        "distance": -0.41179362906798367,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 199.33975226651864,
-        "distance": -4.334184310095482,
+        "vwap": 199.09739749868243,
+        "distance": -3.1579506199843883,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -2727.5200000000077,
-        "cumDelta": -6926.700999999273,
-        "ratio": -0.04179178724859441,
+        "lastDelta": 690.9069999999974,
+        "cumDelta": -1737.0339999990829,
+        "ratio": -0.012027636794131314,
         "bars": 3
       }
     }
@@ -758,81 +752,81 @@
   "RENDER": {
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785298819,
     "confluence": {
-      "score": 15,
+      "score": 12,
       "total": 18
     },
     "data": {
-      "price": 1.388,
-      "px24h": -1.908127208480575,
-      "px4h": -2.528089887640452,
-      "oi24h": 0.8334434761547166,
-      "oi4h": -0.19840336247238158,
+      "price": 1.393,
+      "px24h": -1.275690999291284,
+      "px4h": -0.14336917562724028,
+      "oi24h": -0.39308732837359683,
+      "oi4h": -0.04283843176628927,
       "funding": 0.0,
-      "lsr": 1.1612,
+      "lsr": 1.116,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 1.42106392344684,
-        "emaSlow": 1.4616456482300226,
-        "emaMacro": 1.4616456482300226,
+        "emaFast": 1.4186990594751625,
+        "emaSlow": 1.4594952931476846,
+        "emaMacro": 1.4594952931476846,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 1.4116504161055592,
-        "distUltra": -1.6753734377669594
+        "ema8": 1.4100984717858052,
+        "distUltra": -1.212572889618904
       },
       "obv": {
-        "obvChange": -1044.3467967107017,
-        "priceChange": -9.902280130293155,
+        "obvChange": -1826.2736094499323,
+        "priceChange": -9.721322099805569,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.2351480924775195,
-        "closedRatio": 1.0004276999671022,
-        "current": 263998.6999999999,
-        "avg": 1122691.225000001
+        "ratio": 0.059758549281336136,
+        "closedRatio": 0.812654508447797,
+        "current": 68232.7,
+        "avg": 1141806.5000000012
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 1.41,
-          "bottom": 1.393,
-          "size": 1.2203876525484496,
-          "distance": 0.36023054755044065
+          "bottom": 1.4,
+          "size": 0.714285714285715,
+          "distance": 0.5025125628140628
         },
         "below": null,
         "count": 5
       },
       "poc": {
         "poc": 1.4813649999999998,
-        "vah": 1.54093,
+        "vah": 1.5430199999999998,
         "val": 1.4552399999999999,
         "rangeHigh": 1.589,
         "rangeLow": 1.38,
-        "distance": 6.726585014409217,
+        "distance": 6.34350323043789,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 1.4624391532128342,
-        "distance": -5.431962966685778,
+        "vwap": 1.460065306972643,
+        "distance": -4.593308713820402,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 1.4998752469046666,
-        "distance": -7.792331205269584,
+        "vwap": 1.4980754579206346,
+        "distance": -7.014029724943352,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -62202.29999999986,
-        "cumDelta": -232771.30000000086,
-        "ratio": -0.10494590133697675,
+        "lastDelta": 11138.300000000032,
+        "cumDelta": -165496.70000000205,
+        "ratio": -0.07809032829404056,
         "bars": 3
       }
     }
@@ -840,81 +834,81 @@
   "VIRTUAL": {
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "CONFERMA",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785298819,
     "confluence": {
       "score": 12,
       "total": 18
     },
     "data": {
-      "price": 0.5563,
-      "px24h": -1.973568281938324,
-      "px4h": -1.973568281938324,
-      "oi24h": -5.352811696608981,
-      "oi4h": -2.1061630685095736,
+      "price": 0.5611,
+      "px24h": -0.935734463276831,
+      "px4h": -0.10681858643402777,
+      "oi24h": -4.2254823676367534,
+      "oi4h": 0.9020572493439627,
       "funding": 0.0,
-      "lsr": 0.5277,
+      "lsr": 0.5392,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.570588740211063,
-        "emaSlow": 0.5916273508008723,
-        "emaMacro": 0.5916273508008723,
+        "emaFast": 0.5700460937849413,
+        "emaSlow": 0.5906827473681442,
+        "emaMacro": 0.5906827473681442,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.566329623247524,
-        "distUltra": -1.770986866272466
+        "ema8": 0.5663798304270865,
+        "distUltra": -0.9322066471020223
       },
       "obv": {
-        "obvChange": -71.870748070595,
-        "priceChange": -15.163996948893965,
+        "obvChange": -67.53622016675065,
+        "priceChange": -15.120326925987587,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.1468695241667982,
-        "closedRatio": 0.8105633935646531,
-        "current": 612923.0999999996,
-        "avg": 4173249.034999999
+        "ratio": 0.06878077368251571,
+        "closedRatio": 0.7927050863469209,
+        "current": 291740.40000000026,
+        "avg": 4241598.115
       },
       "fvg": {
         "above": {
           "type": "bear",
-          "top": 0.5635,
-          "bottom": 0.5581,
-          "size": 0.9675685361046336,
-          "distance": 0.3235664209958698
+          "top": 0.5863,
+          "bottom": 0.5703,
+          "size": 2.8055409433631446,
+          "distance": 1.639636428444125
         },
         "below": null,
-        "count": 5
+        "count": 4
       },
       "poc": {
-        "poc": 0.6132949999999999,
-        "vah": 0.6475299999999999,
-        "val": 0.58073,
+        "poc": 0.6133365000000001,
+        "vah": 0.647551,
+        "val": 0.5807910000000001,
         "rangeHigh": 0.6826,
-        "rangeLow": 0.5156,
-        "distance": 10.245371202588514,
+        "rangeLow": 0.5157,
+        "distance": 9.30965959721975,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 0.5990275533435562,
-        "distance": -7.166206813684944,
+        "vwap": 0.5970409323227096,
+        "distance": -6.070091740899412,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.6045569798280599,
-        "distance": -8.015287465846702,
+        "vwap": 0.6047834262109706,
+        "distance": -7.272591196245447,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": 41535.50000000035,
-        "cumDelta": -64777.90000000782,
-        "ratio": -0.009662080380764493,
+        "lastDelta": -31428.2000000002,
+        "cumDelta": -75984.50000001676,
+        "ratio": -0.010798222937755921,
         "bars": 3
       }
     }
@@ -922,81 +916,81 @@
   "INJ": {
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785154819,
     "confluence": {
       "score": 15,
       "total": 18
     },
     "data": {
-      "price": 4.514,
-      "px24h": -4.262990455991508,
-      "px4h": -2.2732193115392842,
-      "oi24h": 0.09223145831903945,
-      "oi4h": 0.16447344486185692,
+      "price": 4.497,
+      "px24h": -2.7255029201817074,
+      "px4h": -0.4648074369189886,
+      "oi24h": -0.410917679972853,
+      "oi4h": 0.08443014836581347,
       "funding": 0.0,
-      "lsr": 0.6345,
+      "lsr": 0.6529,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 4.682913718324947,
-        "emaSlow": 4.940110682978598,
-        "emaMacro": 4.940110682978598,
+        "emaFast": 4.653613382933812,
+        "emaSlow": 4.922450485029857,
+        "emaMacro": 4.922450485029857,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 4.629636246200926,
-        "distUltra": -2.4977393482223724
+        "ema8": 4.599198561859978,
+        "distUltra": -2.222095012541665
       },
       "obv": {
-        "obvChange": -55.41540017535424,
-        "priceChange": -16.36633847297047,
+        "obvChange": -55.81579263985515,
+        "priceChange": -16.09109576255367,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.3216263437251076,
-        "closedRatio": 0.6471797098595572,
-        "current": 329806.39999999944,
-        "avg": 1025433.4149999954
+        "ratio": 0.08938709871747824,
+        "closedRatio": 0.9193646870805404,
+        "current": 94021.30000000008,
+        "avg": 1051844.1849999959
       },
       "fvg": {
         "above": {
           "type": "bear",
-          "top": 4.693,
-          "bottom": 4.655,
-          "size": 0.8163265306122313,
-          "distance": 3.123615418697386
+          "top": 4.585,
+          "bottom": 4.511,
+          "size": 1.6404344934604267,
+          "distance": 0.31131865688237126
         },
         "below": null,
-        "count": 5
+        "count": 6
       },
       "poc": {
-        "poc": 5.09923,
-        "vah": 5.2445200000000005,
-        "val": 4.7836,
+        "poc": 5.09076,
+        "vah": 5.24948,
+        "val": 4.78868,
         "rangeHigh": 5.485,
-        "rangeLow": 4.483,
-        "distance": 12.9647762516615,
+        "rangeLow": 4.461,
+        "distance": 13.203468979319558,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 5.0236977089253605,
-        "distance": -10.384735291665454,
+        "vwap": 5.010417274538556,
+        "distance": -10.286913171039712,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 5.0016620735146535,
-        "distance": -9.989920673779999,
+        "vwap": 5.002423290966286,
+        "distance": -10.143549664871927,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -109599.39999999966,
-        "cumDelta": -206001.89999998524,
-        "ratio": -0.12452589168631487,
+        "lastDelta": 17883.69999999985,
+        "cumDelta": -289564.3999999942,
+        "ratio": -0.16789365087997543,
         "bars": 3
       }
     }
@@ -1004,169 +998,163 @@
   "SEI": {
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785298819,
     "confluence": {
       "score": 14,
       "total": 17
     },
     "data": {
-      "price": 0.04182,
-      "px24h": -2.0379479971890277,
-      "px4h": -3.2392410920869934,
-      "oi24h": 0.0834311974070081,
-      "oi4h": 0.26057305260758645,
+      "price": 0.04206,
+      "px24h": -2.6839426191578,
+      "px4h": -0.3317535545023726,
+      "oi24h": -0.6088545102046263,
+      "oi4h": -0.34336395664959385,
       "funding": 0.0,
-      "lsr": 1.4888,
+      "lsr": 1.4576,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.043073564086731624,
-        "emaSlow": 0.04464741546226738,
-        "emaMacro": 0.04464741546226738,
+        "emaFast": 0.042974317540452674,
+        "emaSlow": 0.044561849854875324,
+        "emaMacro": 0.044561849854875324,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.04275889811495107,
-        "distUltra": -2.195795860845102
+        "ema8": 0.042679389891875516,
+        "distUltra": -1.4512622918103697
       },
       "obv": {
-        "obvChange": -308.7194713012601,
-        "priceChange": -10.603797738425435,
+        "obvChange": -659.7126595282971,
+        "priceChange": -11.649874055415616,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.27000919385880207,
-        "closedRatio": 1.0169211560052869,
-        "current": 11191075.0,
-        "avg": 41447014.6
+        "ratio": 0.06962785060709809,
+        "closedRatio": 0.7742394287281692,
+        "current": 2852269.0,
+        "avg": 40964484.4
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 0.04269,
-          "bottom": 0.04203,
-          "size": 1.5703069236259835,
-          "distance": 0.5021520803443207
+          "bottom": 0.04236,
+          "size": 0.7790368271954602,
+          "distance": 0.7132667617689055
         },
         "below": null,
         "count": 4
       },
       "poc": {
         "poc": 0.046499799999999994,
-        "vah": 0.0502648,
+        "vah": 0.0503652,
         "val": 0.045244799999999995,
         "rangeHigh": 0.05157,
         "rangeLow": 0.04153,
-        "distance": 11.190339550454304,
+        "distance": 10.555872563005215,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 0.0444015688499836,
-        "distance": -5.633965003433711,
+        "vwap": 0.04434669000285712,
+        "distance": -5.088745073672295,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.04663082723733597,
-        "distance": -10.145278386886803,
+        "vwap": 0.046584521949159505,
+        "distance": -9.648101474701502,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -2279635.0,
-        "cumDelta": -12513086.0,
-        "ratio": -0.1638688883990477,
+        "lastDelta": -310127.0,
+        "cumDelta": -9904156.0,
+        "ratio": -0.12909999766153324,
         "bars": 3
       }
     }
   },
   "ONDO": {
-    "label": "LONG_moderate",
+    "label": "NEUTRAL_weak",
     "bias": "NEUTRAL",
-    "signal": "PULLBACK",
-    "ts": 1785298819,
-    "since_ts": 1785284429,
+    "signal": "PARZIALE",
+    "ts": 1785313229,
+    "since_ts": 1785313229,
     "confluence": {
-      "score": 6,
+      "score": 9,
       "total": 17
     },
     "data": {
-      "price": 0.3939,
-      "px24h": 1.1296534017971653,
-      "px4h": -2.185249565433333,
-      "oi24h": -3.400651012199435,
-      "oi4h": -1.6148695655332088,
+      "price": 0.4024,
+      "px24h": 3.1794871794871704,
+      "px4h": 1.2836647369745768,
+      "oi24h": -2.2357225702348176,
+      "oi4h": -0.1452593355982475,
       "funding": 0.0,
-      "lsr": 2.012,
+      "lsr": 1.9638,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND UP",
-        "emaFast": 0.3981121376705018,
-        "emaSlow": 0.389738058472495,
-        "emaMacro": 0.389738058472495,
+        "emaFast": 0.40027121707971663,
+        "emaSlow": 0.39062475731731605,
+        "emaMacro": 0.39062475731731605,
         "emaMacroPeriod": 50,
         "fastVsSlow": true,
         "aboveMacro": true,
-        "ema8": 0.398170480976797,
-        "distUltra": -1.0725257599007976
+        "ema8": 0.4011029666856569,
+        "distUltra": 0.3233666719198154
       },
       "obv": {
-        "obvChange": 164.03225376582105,
-        "priceChange": 8.232378854625546,
+        "obvChange": 100.02780541074101,
+        "priceChange": 3.152229625832915,
         "diverge": false,
         "direction": 1
       },
       "rvol": {
-        "ratio": 0.08801356322584275,
-        "closedRatio": 1.0011102900623052,
-        "current": 2922756.2000000025,
-        "avg": 33208020.365000017
+        "ratio": 0.04646829488069004,
+        "closedRatio": 0.797854666702591,
+        "current": 1579644.5999999996,
+        "avg": 33994029.780000016
       },
       "fvg": {
-        "above": {
-          "type": "bear",
-          "top": 0.4022,
-          "bottom": 0.3959,
-          "size": 1.5913109371053367,
-          "distance": 0.5077430820005082
-        },
+        "above": null,
         "below": {
           "type": "bull",
-          "top": 0.3848,
-          "bottom": 0.3645,
-          "size": 5.56927297668038,
-          "distance": -2.3102310231023098
+          "top": 0.4,
+          "bottom": 0.3909,
+          "size": 2.3279611153747752,
+          "distance": -0.5964214711729517
         },
-        "count": 8
+        "count": 7
       },
       "poc": {
         "poc": 0.4033135,
         "vah": 0.414533,
-        "val": 0.348397,
+        "val": 0.349578,
         "rangeHigh": 0.4228,
         "rangeLow": 0.3047,
-        "distance": 2.3898197512058945,
+        "distance": 0.22701292246521165,
         "inValueArea": true
       },
       "vwapW": {
-        "vwap": 0.39979382107893435,
-        "distance": -1.6743182925812992,
-        "above": false,
+        "vwap": 0.39928329648892785,
+        "distance": 0.8056193533158158,
+        "above": true,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.3692376819513146,
-        "distance": 6.462590145886497,
+        "vwap": 0.36955139159830286,
+        "distance": 8.915839353004477,
         "above": true,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -409658.80000000447,
-        "cumDelta": -47915.800000056624,
-        "ratio": -0.0007497250237914857,
+        "lastDelta": -44539.79999999888,
+        "cumDelta": -2980900.1999999955,
+        "ratio": -0.048120301902514706,
         "bars": 3
       }
     }
@@ -1174,132 +1162,132 @@
   "ENA": {
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "CONFERMA",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785298819,
     "confluence": {
-      "score": 15,
+      "score": 12,
       "total": 18
     },
     "data": {
-      "price": 0.07961,
-      "px24h": -4.153623886347213,
-      "px4h": -4.314903846153841,
-      "oi24h": -3.0636030991695984,
-      "oi4h": -2.2175745221826815,
+      "price": 0.08104,
+      "px24h": -2.9461077844311423,
+      "px4h": 0.24740227610094723,
+      "oi24h": -3.2875656552205514,
+      "oi4h": 0.32518619979881264,
       "funding": 0.0,
-      "lsr": 1.5082,
+      "lsr": 1.4178,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.08359879144859264,
-        "emaSlow": 0.08535160181163204,
-        "emaMacro": 0.08535160181163204,
+        "emaFast": 0.08341578211247931,
+        "emaSlow": 0.08524206343402604,
+        "emaMacro": 0.08524206343402604,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.08270150402876315,
-        "distUltra": -3.7381472865208645
+        "ema8": 0.08261178708409972,
+        "distUltra": -1.9026184271980724
       },
       "obv": {
-        "obvChange": -23.09875019092732,
-        "priceChange": -5.398671096345513,
+        "obvChange": -16.786293516867705,
+        "priceChange": -5.5484322182072505,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.29536518923290017,
-        "closedRatio": 1.252427322007016,
-        "current": 40210858.0,
-        "avg": 136139462.15
+        "ratio": 0.05781137830916547,
+        "closedRatio": 1.2789814049742814,
+        "current": 8312801.0,
+        "avg": 143791780.15
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 0.08267,
-          "bottom": 0.08014,
-          "size": 3.156975293236824,
-          "distance": 0.6657455093581243
+          "bottom": 0.08255,
+          "size": 0.14536644457903708,
+          "distance": 1.8632773938795626
         },
         "below": {
           "type": "bull",
           "top": 0.07611,
           "bottom": 0.07529,
           "size": 1.0891220613627326,
-          "distance": -4.396432608968726
+          "distance": -6.083415597235938
         },
         "count": 3
       },
       "poc": {
-        "poc": 0.08261975,
-        "vah": 0.0879875,
-        "val": 0.0783045,
+        "poc": 0.08272855,
+        "vah": 0.0877339,
+        "val": 0.07833609999999999,
         "rangeHigh": 0.09325,
-        "rangeLow": 0.0722,
-        "distance": 3.780618012812468,
+        "rangeLow": 0.07282,
+        "distance": 2.083600691016778,
         "inValueArea": true
       },
       "vwapW": {
-        "vwap": 0.08781376366534592,
-        "distance": -9.205577039326961,
+        "vwap": 0.08763476387149711,
+        "distance": -7.536693864072001,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.08307052253805544,
-        "distance": -4.021309167189985,
+        "vwap": 0.08312668264026969,
+        "distance": -2.522273924177957,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -8342376.0,
-        "cumDelta": -37632770.0,
-        "ratio": -0.1219950563189261,
+        "lastDelta": -497927.0,
+        "cumDelta": -24796178.0,
+        "ratio": -0.06836089494190242,
         "bars": 3
       }
     }
   },
   "JUP": {
-    "label": "SHORT_moderate",
+    "label": "NEUTRAL_weak",
     "bias": "NEUTRAL",
-    "signal": "PULLBACK",
-    "ts": 1785298819,
-    "since_ts": 1785298819,
+    "signal": "PARZIALE",
+    "ts": 1785313229,
+    "since_ts": 1785313229,
     "confluence": {
-      "score": 14,
-      "total": 17
+      "score": 0,
+      "total": 0
     },
     "data": {
-      "price": 0.1879,
-      "px24h": 3.355335533553368,
-      "px4h": -2.440290758047758,
-      "oi24h": -1.9137950494208769,
-      "oi4h": -2.589188903451548,
+      "price": 0.1925,
+      "px24h": 5.191256830601098,
+      "px4h": 0.8381351492928331,
+      "oi24h": -1.4215338756002618,
+      "oi4h": 0.7420574130517905,
       "funding": 0.0,
-      "lsr": 1.3207,
+      "lsr": 1.3079,
       "lsrSource": "coinalyze",
       "trend": {
-        "label": "TREND DOWN",
-        "emaFast": 0.18754223414169113,
-        "emaSlow": 0.18976336616056422,
-        "emaMacro": 0.18976336616056422,
+        "label": "PULLBACK UP",
+        "emaFast": 0.1891558549213656,
+        "emaSlow": 0.190092352806508,
+        "emaMacro": 0.190092352806508,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
-        "aboveMacro": false,
-        "ema8": 0.1878372048837876,
-        "distUltra": 0.033430606173710735
+        "aboveMacro": true,
+        "ema8": 0.19000671490961255,
+        "distUltra": 1.3122089351281778
       },
       "obv": {
-        "obvChange": -87.56078070244384,
-        "priceChange": -5.8558558558558635,
+        "obvChange": -65.80595294369125,
+        "priceChange": -3.4085213032581456,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.14239092394771613,
-        "closedRatio": 1.9974439571046936,
-        "current": 1012329.0,
-        "avg": 7109505.1
+        "ratio": 0.15124902527099976,
+        "closedRatio": 1.3394973912403239,
+        "current": 1129834.0,
+        "avg": 7470025.0
       },
       "fvg": {
         "above": {
@@ -1307,42 +1295,42 @@
           "top": 0.1981,
           "bottom": 0.1966,
           "size": 0.7629704984740596,
-          "distance": 4.630122405534851
+          "distance": 2.1298701298701257
         },
         "below": {
           "type": "bull",
           "top": 0.1874,
           "bottom": 0.1837,
           "size": 2.014153511159504,
-          "distance": -0.2660989888238427
+          "distance": -2.649350649350646
         },
         "count": 6
       },
       "poc": {
-        "poc": 0.191824,
-        "vah": 0.208296,
-        "val": 0.18556,
-        "rangeHigh": 0.225,
+        "poc": 0.1918925,
+        "vah": 0.20763900000000002,
+        "val": 0.18596200000000002,
+        "rangeHigh": 0.2195,
         "rangeLow": 0.1786,
-        "distance": 2.0883448642895064,
+        "distance": -0.3155844155844212,
         "inValueArea": true
       },
       "vwapW": {
-        "vwap": 0.1882894515492722,
-        "distance": -0.10061718684365166,
-        "above": false,
+        "vwap": 0.1883002130706353,
+        "distance": 2.336580961655238,
+        "above": true,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.20161420214621364,
-        "distance": -6.70300107946411,
+        "vwap": 0.20106592110716826,
+        "distance": -4.1607852096970745,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -214789.0,
-        "cumDelta": -2453803.0,
-        "ratio": -0.10954400899957978,
+        "lastDelta": -325400.0,
+        "cumDelta": -1383283.0,
+        "ratio": -0.0545959108963892,
         "bars": 3
       }
     }
@@ -1350,87 +1338,87 @@
   "BONK": {
     "label": "SHORT_moderate",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785284429,
     "confluence": {
-      "score": 11,
+      "score": 9,
       "total": 17
     },
     "data": {
-      "price": 0.002914,
-      "px24h": -1.2203389830508478,
-      "px4h": -3.8283828382838356,
-      "oi24h": -1.9982622661350928,
-      "oi4h": 1.1780515669552445,
+      "price": 0.002941,
+      "px24h": 0.0680503572643699,
+      "px4h": -0.2712783994574351,
+      "oi24h": -0.8244470099605365,
+      "oi4h": -0.7009342380528196,
       "funding": 0.0,
-      "lsr": 1.0421,
+      "lsr": 1.064,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.002987393604193437,
-        "emaSlow": 0.0030500052758708077,
-        "emaMacro": 0.0030500052758708077,
+        "emaFast": 0.0029860076058841356,
+        "emaSlow": 0.003047448753266258,
+        "emaMacro": 0.003047448753266258,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.0029749085736251978,
-        "distUltra": -2.047409932701736
+        "ema8": 0.002975027656029474,
+        "distUltra": -1.1437761245852753
       },
       "obv": {
-        "obvChange": -18.14326568221748,
-        "priceChange": -6.512672441450114,
+        "obvChange": 3.331173317641335,
+        "priceChange": -3.572599147820378,
         "diverge": false,
-        "direction": -1
+        "direction": 1
       },
       "rvol": {
-        "ratio": 0.09646811943560256,
-        "closedRatio": 0.9009657528809589,
-        "current": 125498788.0,
-        "avg": 1300935363.25
+        "ratio": 0.05553934955398763,
+        "closedRatio": 0.8961325545954644,
+        "current": 72388609.0,
+        "avg": 1303375167.0
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 0.003003,
-          "bottom": 0.002935,
-          "size": 2.316865417376488,
-          "distance": 0.7206588881262932
+          "bottom": 0.002984,
+          "size": 0.6367292225201046,
+          "distance": 1.462087725263518
         },
         "below": {
           "type": "bull",
           "top": 0.002863,
           "bottom": 0.002824,
           "size": 1.3810198300283274,
-          "distance": -1.7501715854495483
+          "distance": -2.652159129547771
         },
         "count": 7
       },
       "poc": {
         "poc": 0.0029741999999999998,
-        "vah": 0.00327432,
-        "val": 0.002718,
+        "vah": 0.00325968,
+        "val": 0.0027326399999999997,
         "rangeHigh": 0.004182,
         "rangeLow": 0.002718,
-        "distance": 2.0658888126286836,
+        "distance": 1.1288677320639144,
         "inValueArea": true
       },
       "vwapW": {
-        "vwap": 0.0030150294922424025,
-        "distance": -3.35086248749304,
+        "vwap": 0.003012695219315781,
+        "distance": -2.3465772064336634,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.00324376635251249,
-        "distance": -10.166156149226545,
+        "vwap": 0.0032361310198445775,
+        "distance": -9.088971306813889,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -8042078.0,
-        "cumDelta": -121024310.0,
-        "ratio": -0.05582823925250585,
+        "lastDelta": 19121337.0,
+        "cumDelta": 35474748.0,
+        "ratio": 0.014704657888727836,
         "bars": 3
       }
     }
@@ -1438,55 +1426,55 @@
   "PENGU": {
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785298819,
     "confluence": {
-      "score": 15,
+      "score": 12,
       "total": 18
     },
     "data": {
-      "price": 0.005817,
-      "px24h": -1.7398648648648614,
-      "px4h": -2.3829501594227183,
-      "oi24h": 3.0194401953536243,
-      "oi4h": 0.2578961084581841,
+      "price": 0.005876,
+      "px24h": -0.9941027801179447,
+      "px4h": -0.06802721088434802,
+      "oi24h": 3.9307093926002534,
+      "oi4h": 0.6904834961093469,
       "funding": 0.0,
-      "lsr": 0.7662,
+      "lsr": 0.7556,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.005996170057016832,
-        "emaSlow": 0.006123615988250606,
-        "emaMacro": 0.006123615988250606,
+        "emaFast": 0.005988569929827355,
+        "emaSlow": 0.006116644023644378,
+        "emaMacro": 0.006116644023644378,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.00594902362477115,
-        "distUltra": -2.21924862125974
+        "ema8": 0.005947215905686202,
+        "distUltra": -1.1974662903714555
       },
       "obv": {
-        "obvChange": -1355.8645034701765,
-        "priceChange": -8.886107634543178,
+        "obvChange": -465.39171620062143,
+        "priceChange": -8.31902606524115,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.14630923628136286,
-        "closedRatio": 0.9689486032816135,
-        "current": 128130204.0,
-        "avg": 875749250.4
+        "ratio": 0.0427075933136602,
+        "closedRatio": 0.761471301032169,
+        "current": 37818892.0,
+        "avg": 885530863.85
       },
       "fvg": {
         "above": {
           "type": "bear",
-          "top": 0.005878,
-          "bottom": 0.00585,
-          "size": 0.47863247863248287,
-          "distance": 0.5673027333677161
+          "top": 0.006344,
+          "bottom": 0.006163,
+          "size": 2.9368813889339562,
+          "distance": 4.884275017018378
         },
         "below": null,
-        "count": 3
+        "count": 1
       },
       "poc": {
         "poc": 0.006108675,
@@ -1494,25 +1482,25 @@
         "val": 0.00599166,
         "rangeHigh": 0.006492,
         "rangeLow": 0.005685,
-        "distance": 5.014182568334191,
+        "distance": 3.959751531654185,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 0.006158505521637233,
-        "distance": -5.431602203846123,
+        "vwap": 0.006151611733263622,
+        "distance": -4.512829243797877,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.006139821085062521,
-        "distance": -5.1438157673825,
+        "vwap": 0.0061356382246361895,
+        "distance": -4.264238129061193,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -6008224.0,
-        "cumDelta": -181699919.0,
-        "ratio": -0.1259210514836335,
+        "lastDelta": -1943982.0,
+        "cumDelta": -63109236.0,
+        "ratio": -0.040436979839811545,
         "bars": 3
       }
     }
@@ -1520,44 +1508,44 @@
   "KAS": {
     "label": "SHORT_moderate",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785270026,
     "confluence": {
       "score": 10,
       "total": 18
     },
     "data": {
-      "price": 0.02769,
-      "px24h": -0.39568345323740645,
-      "px4h": -0.9302325581395342,
-      "oi24h": 0.17090816250040194,
-      "oi4h": -0.47272472565487816,
+      "price": 0.02777,
+      "px24h": -0.43026174256006466,
+      "px4h": 0.10814708002883482,
+      "oi24h": 0.4851510018013565,
+      "oi4h": 0.0468709611986745,
       "funding": 0.0,
-      "lsr": 2.1695721077654517,
+      "lsr": 2.151591553734636,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.028011252124325144,
-        "emaSlow": 0.028210226817222704,
-        "emaMacro": 0.028210226817222704,
+        "emaFast": 0.02800455061389039,
+        "emaSlow": 0.028201268685193338,
+        "emaMacro": 0.028201268685193338,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.027895732010520397,
-        "distUltra": -0.7375035379706433
+        "ema8": 0.027908532304478824,
+        "distUltra": -0.4963797557229204
       },
       "obv": {
-        "obvChange": 126.47649861200864,
-        "priceChange": -2.46739513570673,
+        "obvChange": 267.1547783252887,
+        "priceChange": -2.627890679747725,
         "diverge": true,
         "direction": 1
       },
       "rvol": {
-        "ratio": 0.10594622816819846,
-        "closedRatio": 0.7672064423943031,
-        "current": 1055990.0,
-        "avg": 9967226.0
+        "ratio": 0.03321161552988199,
+        "closedRatio": 0.5148408641345673,
+        "current": 327620.0,
+        "avg": 9864621.0
       },
       "fvg": {
         "above": {
@@ -1565,36 +1553,36 @@
           "top": 0.02856,
           "bottom": 0.0281,
           "size": 1.6370106761565786,
-          "distance": 1.4806789454676803
+          "distance": 1.1883327331652878
         },
         "below": null,
         "count": 2
       },
       "poc": {
         "poc": 0.02811525,
-        "vah": 0.0289394,
-        "val": 0.0276643,
+        "vah": 0.0289083,
+        "val": 0.0276332,
         "rangeHigh": 0.03037,
         "rangeLow": 0.02726,
-        "distance": 1.5357529794149587,
+        "distance": 1.2432481094706582,
         "inValueArea": true
       },
       "vwapW": {
-        "vwap": 0.02824342666030379,
-        "distance": -2.0303013058601063,
+        "vwap": 0.028241577323688104,
+        "distance": -1.598980533248536,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.028511732422203392,
-        "distance": -2.9522317680980197,
+        "vwap": 0.028500482376048415,
+        "distance": -2.4928784245613347,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -196890.0,
-        "cumDelta": -362730.0,
-        "ratio": -0.018901569372714686,
+        "lastDelta": -193200.0,
+        "cumDelta": -951570.0,
+        "ratio": -0.07289908643441288,
         "bars": 3
       }
     }
@@ -1603,125 +1591,131 @@
     "label": "NEUTRAL_weak",
     "bias": "NEUTRAL",
     "signal": "PIATTO",
-    "ts": 1785298819,
+    "ts": 1785313229,
     "since_ts": 1785284429,
     "confluence": {
-      "score": 10,
-      "total": 18
+      "score": 9,
+      "total": 17
     },
     "data": {
-      "price": 0.32462,
-      "px24h": 0.10793474573658278,
-      "px4h": -0.07080190857319008,
-      "oi24h": -0.7009267856906791,
-      "oi4h": -0.08697000271134334,
+      "price": 0.32584,
+      "px24h": 0.058344848764017646,
+      "px4h": 0.24612355402412714,
+      "oi24h": 0.05933909139518609,
+      "oi4h": -0.20844689348930207,
       "funding": 0.0,
-      "lsr": 1.0825,
+      "lsr": 1.1142,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.3258571520646325,
-        "emaSlow": 0.32785694262250153,
-        "emaMacro": 0.32785694262250153,
+        "emaFast": 0.32603037127293993,
+        "emaSlow": 0.32783062807850694,
+        "emaMacro": 0.32783062807850694,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.32515082581238575,
-        "distUltra": -0.16325525579074399
+        "ema8": 0.32553854353309014,
+        "distUltra": 0.09260238853382813
       },
       "obv": {
-        "obvChange": 14.144625623674962,
-        "priceChange": -0.4019761269139996,
+        "obvChange": 21.360916133172555,
+        "priceChange": -0.2112740745276856,
         "diverge": false,
         "direction": 1
       },
       "rvol": {
-        "ratio": 0.05213377879138389,
-        "closedRatio": 0.8549850507763731,
-        "current": 763184.0,
-        "avg": 14638954.2
+        "ratio": 0.05113875131389702,
+        "closedRatio": 0.7862937809523564,
+        "current": 760678.0,
+        "avg": 14874786.35
       },
       "fvg": {
         "above": {
           "type": "bear",
-          "top": 0.3276,
-          "bottom": 0.32484,
-          "size": 0.8496490579977787,
-          "distance": 0.0677715482718249
+          "top": 0.32858,
+          "bottom": 0.32796,
+          "size": 0.1890474448103456,
+          "distance": 0.6506260741468067
         },
-        "below": null,
-        "count": 4
+        "below": {
+          "type": "bull",
+          "top": 0.32569,
+          "bottom": 0.325,
+          "size": 0.21230769230768257,
+          "distance": -0.0460348637368153
+        },
+        "count": 5
       },
       "poc": {
-        "poc": 0.3296653,
+        "poc": 0.3299161,
         "vah": 0.3318598,
-        "val": 0.3252136,
+        "val": 0.3250882,
         "rangeHigh": 0.33349,
         "rangeLow": 0.32095,
-        "distance": 1.5542172386174526,
-        "inValueArea": false
+        "distance": 1.250951387183885,
+        "inValueArea": true
       },
       "vwapW": {
-        "vwap": 0.3286469607567529,
-        "distance": -1.2374861910751382,
+        "vwap": 0.328558213561571,
+        "distance": -0.8090540585657385,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.3276652584746974,
-        "distance": -0.941588525148959,
+        "vwap": 0.3276063125525772,
+        "distance": -0.5208423913697784,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -12394.0,
-        "cumDelta": 3569496.0,
-        "ratio": 0.14060251445397043,
+        "lastDelta": 16388.0,
+        "cumDelta": 2984713.0,
+        "ratio": 0.11951895342425095,
         "bars": 3
       }
     }
   },
   "ROSE": {
-    "label": "NEUTRAL_weak",
+    "label": "SHORT_moderate",
     "bias": "NEUTRAL",
-    "signal": "PIATTO",
-    "ts": 1785298819,
-    "since_ts": 1785284429,
+    "signal": "PARZIALE",
+    "ts": 1785313229,
+    "since_ts": 1785313229,
     "confluence": {
-      "score": 11,
+      "score": 7,
       "total": 17
     },
     "data": {
-      "price": 0.005132,
-      "px24h": 0.6471857226907245,
-      "px4h": -3.224589854799173,
-      "oi24h": -1.653985555065813,
-      "oi4h": -0.16201066175136075,
+      "price": 0.005313,
+      "px24h": 3.5874439461883436,
+      "px4h": 3.2051282051282097,
+      "oi24h": 1.0167961254804643,
+      "oi4h": 1.5868750064341124,
       "funding": 0.0,
-      "lsr": 1.956,
+      "lsr": 1.9028,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.005215286783378137,
-        "emaSlow": 0.005326904113603316,
-        "emaMacro": 0.005326904113603316,
+        "emaFast": 0.005260875798924773,
+        "emaSlow": 0.005335188603473792,
+        "emaMacro": 0.005335188603473792,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.005199391363521591,
-        "distUltra": -1.2961394672922966
+        "ema8": 0.005265082171627904,
+        "distUltra": 0.9101059928430464
       },
       "obv": {
-        "obvChange": -42.06479155667079,
-        "priceChange": -7.621621621621633,
+        "obvChange": -27.41247068261504,
+        "priceChange": -5.35140920442383,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.33763747908839115,
-        "closedRatio": 1.9693330923728434,
-        "current": 22331352.0,
-        "avg": 66140027.05
+        "ratio": 0.146946734813337,
+        "closedRatio": 1.9734204190619145,
+        "current": 10599659.0,
+        "avg": 72132660.95
       },
       "fvg": {
         "above": {
@@ -1729,36 +1723,36 @@
           "top": 0.005942,
           "bottom": 0.005849,
           "size": 1.5900153872456864,
-          "distance": 13.971161340607944
+          "distance": 10.088462262375305
         },
         "below": null,
         "count": 1
       },
       "poc": {
         "poc": 0.00530162,
-        "vah": 0.00573156,
-        "val": 0.00523428,
+        "vah": 0.0057212,
+        "val": 0.00522392,
         "rangeHigh": 0.006032,
         "rangeLow": 0.004996,
-        "distance": 3.3051441932969534,
-        "inValueArea": false
+        "distance": -0.21419160549595467,
+        "inValueArea": true
       },
       "vwapW": {
-        "vwap": 0.005296823141505427,
-        "distance": -3.206131995888418,
-        "above": false,
+        "vwap": 0.005295669573739948,
+        "distance": 0.19507308974257176,
+        "above": true,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.00551715657385755,
-        "distance": -7.071696600133931,
+        "vwap": 0.005509999179647155,
+        "distance": -3.7023450094273556,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -7437436.0,
-        "cumDelta": 14721273.0,
-        "ratio": 0.04256195861522591,
+        "lastDelta": -603201.0,
+        "cumDelta": -4456143.0,
+        "ratio": -0.015734997723459713,
         "bars": 3
       }
     }
@@ -1767,162 +1761,162 @@
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
     "signal": "PARZIALE",
-    "ts": 1785298819,
+    "ts": 1785313229,
     "since_ts": 1785249559,
     "confluence": {
       "score": 15,
       "total": 18
     },
     "data": {
-      "price": 1.596,
-      "px24h": -4.716417910447759,
-      "px4h": -3.971119133573998,
-      "oi24h": -1.9780098046552537,
-      "oi4h": 0.6704055580212952,
+      "price": 1.593,
+      "px24h": -5.122096486003578,
+      "px4h": -1.9088669950739001,
+      "oi24h": -1.0854705601665455,
+      "oi4h": 0.6040113873939735,
       "funding": 0.0,
-      "lsr": 1.0088,
+      "lsr": 0.9775,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 1.6763543438582986,
-        "emaSlow": 1.7929872922738193,
-        "emaMacro": 1.7929872922738193,
+        "emaFast": 1.664418172588548,
+        "emaSlow": 1.7852390075590385,
+        "emaMacro": 1.7852390075590385,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 1.6512476270977234,
-        "distUltra": -3.345811142501264
+        "ema8": 1.6394642037920562,
+        "distUltra": -2.8341090756715013
       },
       "obv": {
-        "obvChange": -813.4758158883412,
-        "priceChange": -21.008403361344538,
+        "obvChange": -868.14886987794,
+        "priceChange": -21.031746031746028,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.3404777819012623,
-        "closedRatio": 1.3585823573900337,
-        "current": 2903313.0,
-        "avg": 8527173.15
+        "ratio": 0.10770070588437726,
+        "closedRatio": 1.1970945960815484,
+        "current": 961416.0,
+        "avg": 8926738.15
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 1.639,
-          "bottom": 1.608,
-          "size": 1.9278606965174077,
-          "distance": 0.7518796992481209
+          "bottom": 1.627,
+          "size": 0.737553779963123,
+          "distance": 2.1343377275580684
         },
         "below": null,
         "count": 9
       },
       "poc": {
-        "poc": 1.917295,
-        "vah": 2.03362,
-        "val": 1.8526699999999998,
+        "poc": 1.91693,
+        "vah": 2.03866,
+        "val": 1.85218,
         "rangeHigh": 2.106,
-        "rangeLow": 1.589,
-        "distance": 20.13126566416039,
+        "rangeLow": 1.588,
+        "distance": 20.334588826114253,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 1.7913612320518555,
-        "distance": -10.79409493697573,
+        "vwap": 1.784227933147915,
+        "distance": -10.773731852116391,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 1.9061344454523037,
-        "distance": -16.165409852775987,
+        "vwap": 1.9025572606409347,
+        "distance": -16.323149219504376,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -814781.0,
-        "cumDelta": -3059524.0,
-        "ratio": -0.15877921512045795,
+        "lastDelta": -104976.0,
+        "cumDelta": -3324557.0,
+        "ratio": -0.14309982084097692,
         "bars": 3
       }
     }
   },
   "FET": {
     "label": "SHORT_strong",
-    "bias": "BEARISH AGGRESSIVO",
+    "bias": "NEUTRAL",
     "signal": "PARZIALE",
-    "ts": 1785298819,
+    "ts": 1785313229,
     "since_ts": 1785270026,
     "confluence": {
       "score": 15,
       "total": 18
     },
     "data": {
-      "price": 0.1347,
-      "px24h": -4.80565371024735,
-      "px4h": -2.4619840695148545,
-      "oi24h": 5.594003574019286,
-      "oi4h": -0.0016571676885506039,
+      "price": 0.1338,
+      "px24h": -5.973295853829941,
+      "px4h": -1.1086474501108656,
+      "oi24h": 4.1206098350121545,
+      "oi4h": 1.0232714152670292,
       "funding": 0.0,
-      "lsr": 0.9928,
+      "lsr": 1.0084,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.1422343540977192,
-        "emaSlow": 0.15072438398123905,
-        "emaMacro": 0.15072438398123905,
+        "emaFast": 0.140988832164615,
+        "emaSlow": 0.15007289684480912,
+        "emaMacro": 0.15007289684480912,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.13971646808754137,
-        "distUltra": -3.590462997102279
+        "ema8": 0.1384708332038902,
+        "distUltra": -3.3731531007780298
       },
       "obv": {
-        "obvChange": -116.48924458801275,
-        "priceChange": -13.653846153846164,
+        "obvChange": -145.8492724225739,
+        "priceChange": -16.21790857858485,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.2658976724548371,
-        "closedRatio": 1.559696428689816,
-        "current": 7630364.0,
-        "avg": 28696618.25
+        "ratio": 0.32077645135928406,
+        "closedRatio": 0.9538002321130088,
+        "current": 9278502.0,
+        "avg": 28925134.5
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 0.1379,
-          "bottom": 0.1353,
-          "size": 1.921655580192159,
-          "distance": 0.44543429844099275
+          "bottom": 0.136,
+          "size": 1.3970588235294008,
+          "distance": 1.6442451420029953
         },
         "below": null,
         "count": 4
       },
       "poc": {
-        "poc": 0.15981900000000002,
-        "vah": 0.162802,
-        "val": 0.153382,
+        "poc": 0.1593475,
+        "vah": 0.163062,
+        "val": 0.15304900000000002,
         "rangeHigh": 0.165,
-        "rangeLow": 0.1336,
-        "distance": 18.64810690423165,
+        "rangeLow": 0.1327,
+        "distance": 19.093796711509718,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 0.1493197288039983,
-        "distance": -9.790888934166643,
+        "vwap": 0.14874143802520984,
+        "distance": -10.045242417703024,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.1557507582948974,
-        "distance": -13.515669859558601,
+        "vwap": 0.1553546468643651,
+        "distance": -13.874478362519612,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -1149060.0,
-        "cumDelta": -9688669.0,
-        "ratio": -0.12644787865245574,
+        "lastDelta": -2200820.0,
+        "cumDelta": -10274137.0,
+        "ratio": -0.1258694928160461,
         "bars": 3
       }
     }
@@ -1930,55 +1924,55 @@
   "HYPE": {
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785226839,
     "confluence": {
       "score": 12,
       "total": 18
     },
     "data": {
-      "price": 54.209,
-      "px24h": -3.554717383955731,
-      "px4h": -1.4238434681408099,
-      "oi24h": -0.04212600501543015,
-      "oi4h": 0.2720570383578733,
+      "price": 54.755,
+      "px24h": -0.8995149496850791,
+      "px4h": 0.647023142106141,
+      "oi24h": -0.9496639250285596,
+      "oi4h": -0.9021688959111894,
       "funding": 0.0,
-      "lsr": 1.4266,
+      "lsr": 1.4108,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 55.75217051567145,
-        "emaSlow": 58.20934413281591,
-        "emaMacro": 58.20934413281591,
+        "emaFast": 55.75451114612467,
+        "emaSlow": 58.117217519744685,
+        "emaMacro": 58.117217519744685,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 55.21872876272701,
-        "distUltra": -1.8285983494219467
+        "ema8": 55.32123348212101,
+        "distUltra": -1.0235373408729305
       },
       "obv": {
-        "obvChange": -30.34922031303179,
-        "priceChange": -13.525035125814275,
+        "obvChange": -35.063478088944606,
+        "priceChange": -13.12649922953502,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.08350317376728157,
-        "closedRatio": 0.9002513796386041,
-        "current": 85936.20999999999,
-        "avg": 1029137.0509999912
+        "ratio": 0.14057308094771778,
+        "closedRatio": 0.940024685772317,
+        "current": 147374.69000000012,
+        "avg": 1048384.8614999909
       },
       "fvg": {
         "above": {
           "type": "bear",
-          "top": 54.506,
-          "bottom": 54.444,
-          "size": 0.11387848064065391,
-          "distance": 0.43350735117784767
+          "top": 57.338,
+          "bottom": 57.286,
+          "size": 0.09077261460042524,
+          "distance": 4.622408912428087
         },
         "below": null,
-        "count": 8
+        "count": 7
       },
       "poc": {
         "poc": 58.842495,
@@ -1986,25 +1980,25 @@
         "val": 57.074600000000004,
         "rangeHigh": 69.373,
         "rangeLow": 54.0,
-        "distance": 8.547464443173636,
+        "distance": 7.4650625513651665,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 57.829609168445806,
-        "distance": -6.343824938812742,
+        "vwap": 57.7442275106727,
+        "distance": -5.296161439006968,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 62.33087934347207,
-        "distance": -13.107274322976004,
+        "vwap": 62.176755014768304,
+        "distance": -12.047516813942911,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -5259.790000000037,
-        "cumDelta": -73695.90999995475,
-        "ratio": -0.03888796166468282,
+        "lastDelta": -46252.310000000085,
+        "cumDelta": -41780.26999995345,
+        "ratio": -0.02028794428166007,
         "bars": 3
       }
     }
@@ -2012,52 +2006,52 @@
   "STRK": {
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785298819,
     "confluence": {
       "score": 15,
       "total": 18
     },
     "data": {
-      "price": 0.02742,
-      "px24h": -5.088265835929384,
-      "px4h": -3.721910112359545,
-      "oi24h": 2.4137633705598427,
-      "oi4h": -1.0927662227803256,
+      "price": 0.02784,
+      "px24h": -3.4674063800277417,
+      "px4h": 0.6507592190889356,
+      "oi24h": 0.37345570565066594,
+      "oi4h": -2.196765048585656,
       "funding": 0.0,
-      "lsr": 1.748,
+      "lsr": 1.7211,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.02875743435698781,
-        "emaSlow": 0.029366977472181782,
-        "emaMacro": 0.029366977472181782,
+        "emaFast": 0.0286912018522189,
+        "emaSlow": 0.029328931989408214,
+        "emaMacro": 0.029328931989408214,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.028382734456981338,
-        "distUltra": -3.391972180976851
+        "ema8": 0.028362126799874373,
+        "distUltra": -1.8409296438117804
       },
       "obv": {
-        "obvChange": -70.10587488895915,
-        "priceChange": -6.548431105047743,
+        "obvChange": -73.92433197785215,
+        "priceChange": -5.042589437819428,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.349619164476151,
-        "closedRatio": 1.557604505522035,
-        "current": 10073989.000000007,
-        "avg": 28814178.46500001
+        "ratio": 0.26472852468656455,
+        "closedRatio": 1.1995823695266088,
+        "current": 7957701.399999994,
+        "avg": 30059856.26000001
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 0.02823,
-          "bottom": 0.02758,
-          "size": 2.356780275562006,
-          "distance": 0.5835156819839549
+          "bottom": 0.02794,
+          "size": 1.03793843951325,
+          "distance": 0.3591954022988484
         },
         "below": null,
         "count": 3
@@ -2065,28 +2059,28 @@
       "poc": {
         "poc": 0.02895935,
         "vah": 0.0305222,
-        "val": 0.0281213,
+        "val": 0.028076,
         "rangeHigh": 0.0317,
         "rangeLow": 0.02717,
-        "distance": 5.613967906637485,
+        "distance": 4.020653735632177,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 0.029611024351268857,
-        "distance": -7.466895859595997,
+        "vwap": 0.02956456561604174,
+        "distance": -5.731745353709066,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.029371842193557554,
-        "distance": -6.713375962472176,
+        "vwap": 0.029349894858682612,
+        "distance": -5.042249268040614,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -3116561.8000000077,
-        "cumDelta": -15930151.7,
-        "ratio": -0.22875843269615412,
+        "lastDelta": -2101861.599999993,
+        "cumDelta": -19820309.400000118,
+        "ratio": -0.22295545424511987,
         "bars": 3
       }
     }
@@ -2094,44 +2088,44 @@
   "XLM": {
     "label": "SHORT_moderate",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785255628,
     "confluence": {
       "score": 11,
       "total": 17
     },
     "data": {
-      "price": 0.17161,
-      "px24h": -0.040773532152834774,
-      "px4h": -1.9763523162163652,
-      "oi24h": 0.995351950081691,
-      "oi4h": -1.0641517682606998,
+      "price": 0.17283,
+      "px24h": 0.6405403831596214,
+      "px4h": 0.03472825143254297,
+      "oi24h": 0.9813364964345792,
+      "oi4h": 0.04105929804402052,
       "funding": 0.0,
-      "lsr": 0.8512,
+      "lsr": 0.8481,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.17376780110256385,
-        "emaSlow": 0.17927632479045244,
-        "emaMacro": 0.17927632479045244,
+        "emaFast": 0.17384849442171454,
+        "emaSlow": 0.17908341867208363,
+        "emaMacro": 0.17908341867208363,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.17291939223780986,
-        "distUltra": -0.7572269488485637
+        "ema8": 0.17319607050595087,
+        "distUltra": -0.21136190034882044
       },
       "obv": {
-        "obvChange": -54.34901406079504,
-        "priceChange": -8.885350318471339,
+        "obvChange": -584.0933555490695,
+        "priceChange": -9.99530981291365,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.12475142481988634,
-        "closedRatio": 0.9347888630535814,
-        "current": 4577507.0,
-        "avg": 36693023.8
+        "ratio": 0.07814087174127411,
+        "closedRatio": 0.6884078327946653,
+        "current": 2893229.0,
+        "avg": 37025809.1
       },
       "fvg": {
         "above": {
@@ -2139,7 +2133,7 @@
           "top": 0.18059,
           "bottom": 0.17748,
           "size": 1.7523101194500796,
-          "distance": 3.4205465881941532
+          "distance": 2.6905051206387705
         },
         "below": null,
         "count": 2
@@ -2147,28 +2141,28 @@
       "poc": {
         "poc": 0.18955090000000002,
         "vah": 0.19183060000000002,
-        "val": 0.1813708,
+        "val": 0.1811026,
         "rangeHigh": 0.19639,
         "rangeLow": 0.16957,
-        "distance": 10.454460695763656,
+        "distance": 9.674767112191176,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 0.17995495111865895,
-        "distance": -4.609459793739935,
+        "vwap": 0.17964278946918347,
+        "distance": -3.8592083153845365,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.18503878502807025,
-        "distance": -7.230259875539441,
+        "vwap": 0.18492280625336333,
+        "distance": -6.604272615585619,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -1820479.0,
-        "cumDelta": -3478976.0,
-        "ratio": -0.05251680564469435,
+        "lastDelta": -448755.0,
+        "cumDelta": -3647046.0,
+        "ratio": -0.05818301289314198,
         "bars": 3
       }
     }
@@ -2176,55 +2170,55 @@
   "ZEC": {
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785270026,
     "confluence": {
       "score": 12,
       "total": 18
     },
     "data": {
-      "price": 454.75,
-      "px24h": -4.638580745276491,
-      "px4h": -2.3890272173091773,
-      "oi24h": 0.5445556558781292,
-      "oi4h": 0.7840644347927617,
+      "price": 462.32,
+      "px24h": -1.3570026457284317,
+      "px4h": 0.3429265963450068,
+      "oi24h": -1.3628118190076333,
+      "oi4h": -0.25202649672662886,
       "funding": 0.0,
-      "lsr": 0.6321,
+      "lsr": 0.6121,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 471.2884674831573,
-        "emaSlow": 494.4977387024317,
-        "emaMacro": 494.4977387024317,
+        "emaFast": 471.32479792086997,
+        "emaSlow": 493.6115968954932,
+        "emaMacro": 493.6115968954932,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 466.5889667485637,
-        "distUltra": -2.5373439134370877
+        "ema8": 467.5124062365371,
+        "distUltra": -1.1106456571571781
       },
       "obv": {
-        "obvChange": -196.19601218337493,
-        "priceChange": -17.23028838291144,
+        "obvChange": -148.32043190074162,
+        "priceChange": -16.061790095411176,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.2239782793318364,
-        "closedRatio": 1.382997178655339,
-        "current": 27470.556999999975,
-        "avg": 122648.3080499998
+        "ratio": 0.08074506359332777,
+        "closedRatio": 1.2462477332599327,
+        "current": 10265.704,
+        "avg": 127137.2334499999
       },
       "fvg": {
         "above": {
           "type": "bear",
-          "top": 460.62,
-          "bottom": 456.73,
-          "size": 0.8517066976112773,
-          "distance": 0.4354040681693278
+          "top": 481.86,
+          "bottom": 479.92,
+          "size": 0.40423403900650057,
+          "distance": 3.8068870046720935
         },
         "below": null,
-        "count": 4
+        "count": 3
       },
       "poc": {
         "poc": 503.0125,
@@ -2232,25 +2226,25 @@
         "val": 485.855,
         "rangeHigh": 588.8,
         "rangeLow": 451.54,
-        "distance": 10.612974161627266,
+        "distance": 8.801803945319259,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 492.9613286341657,
-        "distance": -7.601271429948967,
+        "vwap": 491.64877012836456,
+        "distance": -6.056919479446601,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 516.4449467114205,
-        "distance": -11.802796619381178,
+        "vwap": 516.545606434406,
+        "distance": -10.58485557777152,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -213.54099999996834,
-        "cumDelta": -7865.186000001762,
-        "ratio": -0.02857461527543458,
+        "lastDelta": -2077.964000000007,
+        "cumDelta": -1049.6050000025716,
+        "ratio": -0.0031022888235714427,
         "bars": 3
       }
     }
@@ -2258,81 +2252,81 @@
   "ALGO": {
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "CONFERMA",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785298819,
     "confluence": {
-      "score": 18,
+      "score": 12,
       "total": 18
     },
     "data": {
-      "price": 0.07821,
-      "px24h": -2.0047613081067586,
-      "px4h": -2.6754604280736674,
-      "oi24h": 3.0597996801493466,
-      "oi4h": 2.1010681379001896,
+      "price": 0.07939,
+      "px24h": -0.5137844611528743,
+      "px4h": 0.7998984255967567,
+      "oi24h": 1.8020364476982762,
+      "oi4h": -0.7541632428185797,
       "funding": 0.0,
-      "lsr": 1.1772,
+      "lsr": 1.1777,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.08029561784947585,
-        "emaSlow": 0.08248459873190427,
-        "emaMacro": 0.08248459873190427,
+        "emaFast": 0.08032268255867692,
+        "emaSlow": 0.0824105194110412,
+        "emaMacro": 0.0824105194110412,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.07965813015610121,
-        "distUltra": -1.8179313941507218
+        "ema8": 0.07981928641770833,
+        "distUltra": -0.537822920968995
       },
       "obv": {
-        "obvChange": -285.97345913619216,
-        "priceChange": -6.702508960573465,
+        "obvChange": -19693.735218451442,
+        "priceChange": -6.070287539936097,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.28615660345687466,
-        "closedRatio": 0.8968834536610665,
-        "current": 6160484.300000003,
-        "avg": 21528366.72500001
+        "ratio": 0.2564888959809411,
+        "closedRatio": 0.8114851965007193,
+        "current": 5444606.500000002,
+        "avg": 21227455.010000017
       },
       "fvg": {
         "above": {
           "type": "bear",
-          "top": 0.0794,
-          "bottom": 0.07873,
-          "size": 0.8510097802616587,
-          "distance": 0.6648766142436935
+          "top": 0.08289,
+          "bottom": 0.08229,
+          "size": 0.7291286912140033,
+          "distance": 3.652853004156695
         },
         "below": null,
-        "count": 3
+        "count": 2
       },
       "poc": {
-        "poc": 0.0843825,
-        "vah": 0.0853496,
-        "val": 0.0819902,
+        "poc": 0.0844113,
+        "vah": 0.0852936,
+        "val": 0.0818682,
         "rangeHigh": 0.0882,
-        "rangeLow": 0.07802,
-        "distance": 7.892213271960104,
+        "rangeLow": 0.07782,
+        "distance": 6.324851996473098,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 0.08310690242107628,
-        "distance": -6.036685612053285,
+        "vwap": 0.08303065790014977,
+        "distance": -4.396758971294598,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.08367588198900194,
-        "distance": -6.675617700374076,
+        "vwap": 0.08362503590816416,
+        "distance": -5.0762739436381095,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -1685111.6999999974,
-        "cumDelta": -4354138.1999999955,
-        "ratio": -0.12147858324108984,
+        "lastDelta": 2506183.7,
+        "cumDelta": -1782143.2999999896,
+        "ratio": -0.042453404209222154,
         "bars": 3
       }
     }
@@ -2341,136 +2335,136 @@
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
     "signal": "PARZIALE",
-    "ts": 1785298819,
+    "ts": 1785313229,
     "since_ts": 1785226839,
     "confluence": {
       "score": 15,
       "total": 18
     },
     "data": {
-      "price": 0.566,
-      "px24h": -3.8886058753608475,
-      "px4h": -3.313973351554507,
-      "oi24h": 2.0677901949978263,
-      "oi4h": -0.2707821620664598,
+      "price": 0.5747,
+      "px24h": -1.5250171350239923,
+      "px4h": 0.7361963190184017,
+      "oi24h": 3.618223343484976,
+      "oi4h": 1.8713447384916229,
       "funding": 0.0,
-      "lsr": 1.0496,
+      "lsr": 1.0048,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.5879730914998499,
-        "emaSlow": 0.6041659536570506,
-        "emaMacro": 0.6041659536570506,
+        "emaFast": 0.5874411365894636,
+        "emaSlow": 0.6034272393583932,
+        "emaMacro": 0.6034272393583932,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.582107292319596,
-        "distUltra": -2.7670658883882586
+        "ema8": 0.5824661656312906,
+        "distUltra": -1.3333247645163164
       },
       "obv": {
-        "obvChange": -125.30786094042763,
-        "priceChange": -6.567656765676559,
+        "obvChange": -190.67468339030802,
+        "priceChange": -7.111685792791343,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.2575271536825863,
-        "closedRatio": 1.4304712229515066,
-        "current": 1302942.7999999998,
-        "avg": 5059438.514999995
+        "ratio": 0.06902480631137814,
+        "closedRatio": 1.2633389748666037,
+        "current": 365479.80000000016,
+        "avg": 5294905.1149999965
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 0.5826,
-          "bottom": 0.5698,
-          "size": 2.2464022464022526,
-          "distance": 0.6713780918727961
+          "bottom": 0.5779,
+          "size": 0.81328949645268,
+          "distance": 0.5568122498694937
         },
         "below": null,
         "count": 3
       },
       "poc": {
-        "poc": 0.610421,
+        "poc": 0.6054889999999999,
         "vah": 0.629738,
-        "val": 0.599324,
+        "val": 0.598502,
         "rangeHigh": 0.647,
         "rangeLow": 0.5648,
-        "distance": 7.848233215547712,
+        "distance": 5.3574038628849765,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 0.6096429479466929,
-        "distance": -7.125965795718766,
+        "vwap": 0.6087484021959431,
+        "distance": -5.593181365753075,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.6126111905794068,
-        "distance": -7.575961930357679,
+        "vwap": 0.6117794216735618,
+        "distance": -6.060913518818381,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -250498.79999999912,
-        "cumDelta": -1606566.1000000183,
-        "ratio": -0.13917960356366696,
+        "lastDelta": -126767.20000000029,
+        "cumDelta": -1039229.600000036,
+        "ratio": -0.0727134621936124,
         "bars": 3
       }
     }
   },
   "FARTCOIN": {
-    "label": "SHORT_strong",
+    "label": "SHORT_moderate",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
-    "since_ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
+    "since_ts": 1785313229,
     "confluence": {
-      "score": 12,
-      "total": 18
+      "score": 11,
+      "total": 17
     },
     "data": {
-      "price": 0.1197,
-      "px24h": -2.6037428803905573,
-      "px4h": -4.163330664531623,
-      "oi24h": -0.39364756388700994,
-      "oi4h": -0.8876779707255105,
+      "price": 0.1219,
+      "px24h": -1.6935483870967778,
+      "px4h": 0.08210180623972822,
+      "oi24h": -1.7898778807658549,
+      "oi4h": -0.4227844455765243,
       "funding": 0.0,
-      "lsr": 1.0563,
+      "lsr": 1.0504,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.12428141095283271,
-        "emaSlow": 0.1292886682766901,
-        "emaMacro": 0.1292886682766901,
+        "emaFast": 0.1243055725787557,
+        "emaSlow": 0.12909772130087926,
+        "emaMacro": 0.12909772130087926,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.123261909875753,
-        "distUltra": -2.8897084909226023
+        "ema8": 0.12347778175521526,
+        "distUltra": -1.277785956944943
       },
       "obv": {
-        "obvChange": -223.3894850557293,
-        "priceChange": -15.444287729196052,
+        "obvChange": -208.51847010513458,
+        "priceChange": -13.973182780522231,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.2819533553976589,
-        "closedRatio": 1.0992278170544985,
-        "current": 6067615.399999995,
-        "avg": 21519926.20000001
+        "ratio": 0.0695256543957048,
+        "closedRatio": 0.9554446396634231,
+        "current": 1538154.6000000006,
+        "avg": 22123554.440000005
       },
       "fvg": {
         "above": {
           "type": "bear",
-          "top": 0.1222,
-          "bottom": 0.1208,
-          "size": 1.158940397350992,
-          "distance": 0.9189640768588168
+          "top": 0.1277,
+          "bottom": 0.1226,
+          "size": 4.159869494290381,
+          "distance": 0.5742411812961494
         },
         "below": null,
-        "count": 6
+        "count": 4
       },
       "poc": {
         "poc": 0.133116,
@@ -2478,78 +2472,78 @@
         "val": 0.12831599999999999,
         "rangeHigh": 0.1575,
         "rangeLow": 0.1191,
-        "distance": 11.208020050125322,
+        "distance": 9.200984413453666,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 0.12877510193945366,
-        "distance": -6.891939362336104,
+        "vwap": 0.1284919477195002,
+        "distance": -5.130241884021035,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.13908750729687236,
-        "distance": -13.795277282465051,
+        "vwap": 0.13869902670949416,
+        "distance": -12.111856231464275,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": 16172.000000008382,
-        "cumDelta": -3892114.399999857,
-        "ratio": -0.09048097790528453,
+        "lastDelta": -299251.80000000075,
+        "cumDelta": -811468.3999998383,
+        "ratio": -0.017514479783200348,
         "bars": 3
       }
     }
   },
   "AVAX": {
-    "label": "NEUTRAL_weak",
+    "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
-    "since_ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
+    "since_ts": 1785313229,
     "confluence": {
-      "score": 15,
-      "total": 18
+      "score": 14,
+      "total": 17
     },
     "data": {
-      "price": 6.311,
-      "px24h": -2.033529959639867,
-      "px4h": -3.8543570993296785,
-      "oi24h": -2.245655777854409,
-      "oi4h": -0.25403558350828753,
+      "price": 6.386,
+      "px24h": -0.7306078035131309,
+      "px4h": -0.3588703385863581,
+      "oi24h": -0.9037778582572252,
+      "oi4h": 1.0166386612550402,
       "funding": 0.0,
-      "lsr": 1.9146,
+      "lsr": 1.9551,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 6.497082884878429,
-        "emaSlow": 6.52656641850999,
-        "emaMacro": 6.52656641850999,
+        "emaFast": 6.49311747055925,
+        "emaSlow": 6.5246454672898375,
+        "emaMacro": 6.5246454672898375,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 6.47260276607879,
-        "distUltra": -2.496719973697561
+        "ema8": 6.470765114357576,
+        "distUltra": -1.3099705036348146
       },
       "obv": {
-        "obvChange": -44.92344154199753,
-        "priceChange": -4.745405242542927,
+        "obvChange": -47.49811089183558,
+        "priceChange": -4.315899895099659,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.3697063277026522,
-        "closedRatio": 0.8978978870677519,
-        "current": 645831.0,
-        "avg": 1746875.7
+        "ratio": 0.0811095775154719,
+        "closedRatio": 1.1466700325534247,
+        "current": 133661.0,
+        "avg": 1647906.5
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 6.519,
-          "bottom": 6.409,
-          "size": 1.7163364019347842,
-          "distance": 1.5528442402154947
+          "bottom": 6.451,
+          "size": 1.0541001395132616,
+          "distance": 1.0178515502661996
         },
         "below": null,
         "count": 2
@@ -2560,25 +2554,25 @@
         "val": 6.4162,
         "rangeHigh": 6.844,
         "rangeLow": 6.131,
-        "distance": 4.321898272856918,
+        "distance": 3.0966958972752883,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 6.5172950762044755,
-        "distance": -2.9812226381136653,
+        "vwap": 6.515589265537059,
+        "distance": -2.0042587126813842,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 6.552392400605235,
-        "distance": -3.5008953460120362,
+        "vwap": 6.549795913990476,
+        "distance": -2.5160465479308924,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -182545.0,
-        "cumDelta": -503697.0,
-        "ratio": -0.14902458875980448,
+        "lastDelta": -33943.0,
+        "cumDelta": -445236.0,
+        "ratio": -0.12395963897586212,
         "bars": 3
       }
     }
@@ -2586,44 +2580,44 @@
   "DOT": {
     "label": "SHORT_moderate",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785298819,
     "confluence": {
       "score": 11,
       "total": 17
     },
     "data": {
-      "price": 0.7553,
-      "px24h": -0.8141825344714357,
-      "px4h": -1.1516817170527458,
-      "oi24h": 1.5781100467387554,
-      "oi4h": 0.10914620957364711,
+      "price": 0.7603,
+      "px24h": -0.03944254535893741,
+      "px4h": -0.013150973172013282,
+      "oi24h": 3.5509313761085903,
+      "oi4h": -0.005304655771692402,
       "funding": 0.0,
-      "lsr": 1.5974,
+      "lsr": 1.5954,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.770410191640247,
-        "emaSlow": 0.8027806193002714,
-        "emaMacro": 0.8027806193002714,
+        "emaFast": 0.7701151325661191,
+        "emaSlow": 0.8014638476152643,
+        "emaMacro": 0.8014638476152643,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.7638578418345027,
-        "distUltra": -1.120344829340227
+        "ema8": 0.7647388152539958,
+        "distUltra": -0.5804354591994297
       },
       "obv": {
-        "obvChange": -353.13275561916817,
-        "priceChange": -9.761051373954599,
+        "obvChange": -204.32318797128826,
+        "priceChange": -11.139684395090596,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.10945752039410248,
-        "closedRatio": 0.94143753035564,
-        "current": 991487.1999999994,
-        "avg": 9058191.674999978
+        "ratio": 0.0759365578295532,
+        "closedRatio": 0.7633581386533563,
+        "current": 689472.6000000004,
+        "avg": 9079587.219999976
       },
       "fvg": {
         "above": {
@@ -2631,36 +2625,36 @@
           "top": 0.787,
           "bottom": 0.7617,
           "size": 3.3215176578705514,
-          "distance": 0.8473454256586882
+          "distance": 0.18413784032619596
         },
         "below": null,
         "count": 4
       },
       "poc": {
         "poc": 0.8484430000000001,
-        "vah": 0.859528,
+        "vah": 0.861006,
         "val": 0.807798,
         "rangeHigh": 0.895,
         "rangeLow": 0.7472,
-        "distance": 12.331921090957247,
+        "distance": 11.593186899907943,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 0.799871177501574,
-        "distance": -5.5722944838184665,
+        "vwap": 0.7985038408201962,
+        "distance": -4.796951356032529,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.8313105439616272,
-        "distance": -9.143459626940063,
+        "vwap": 0.8305579084347215,
+        "distance": -8.471162301894017,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": 105904.20000000077,
-        "cumDelta": -870558.9999999385,
-        "ratio": -0.05557400732972684,
+        "lastDelta": -164008.40000000084,
+        "cumDelta": -735336.3999999464,
+        "ratio": -0.04553682271508935,
         "bars": 3
       }
     }
@@ -2668,87 +2662,81 @@
   "CRV": {
     "label": "NEUTRAL_weak",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785298819,
     "confluence": {
-      "score": 0,
-      "total": 0
+      "score": 6,
+      "total": 17
     },
     "data": {
-      "price": 0.209,
-      "px24h": -1.554404145077719,
-      "px4h": -1.785714285714285,
-      "oi24h": -2.6918270298795464,
-      "oi4h": -0.3922763391475402,
+      "price": 0.2092,
+      "px24h": 0.09569377990430897,
+      "px4h": -0.14319809069212158,
+      "oi24h": -1.3941877993706235,
+      "oi4h": -0.3827538666248091,
       "funding": 0.0,
-      "lsr": 1.2962,
+      "lsr": 1.3419,
       "lsrSource": "coinalyze",
       "trend": {
-        "label": "PULLBACK DOWN",
-        "emaFast": 0.20986117899250448,
-        "emaSlow": 0.20908632975479532,
-        "emaMacro": 0.20908632975479532,
+        "label": "TREND UP",
+        "emaFast": 0.20985058340665744,
+        "emaSlow": 0.20910956896734031,
+        "emaMacro": 0.20910956896734031,
         "emaMacroPeriod": 50,
         "fastVsSlow": true,
-        "aboveMacro": false,
-        "ema8": 0.21028720751552604,
-        "distUltra": -0.6121187925475748
+        "aboveMacro": true,
+        "ema8": 0.21016659349973013,
+        "distUltra": -0.45991776506163673
       },
       "obv": {
-        "obvChange": -81.7997566370668,
-        "priceChange": -3.149606299212598,
+        "obvChange": -70.67672778153238,
+        "priceChange": -2.923433874709977,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.10995860213927701,
-        "closedRatio": 0.674943913871682,
-        "current": 1053738.2000000002,
-        "avg": 9583044.705
+        "ratio": 0.05336904289091591,
+        "closedRatio": 0.6756907608047787,
+        "current": 521793.39999999973,
+        "avg": 9777079.965000002
       },
       "fvg": {
-        "above": {
-          "type": "bear",
-          "top": 0.2102,
-          "bottom": 0.2094,
-          "size": 0.3820439350525287,
-          "distance": 0.19138755980861794
-        },
+        "above": null,
         "below": {
           "type": "bull",
           "top": 0.2067,
           "bottom": 0.2062,
           "size": 0.24248302618816706,
-          "distance": -1.10047846889952
+          "distance": -1.1950286806883375
         },
-        "count": 2
+        "count": 1
       },
       "poc": {
         "poc": 0.21331699999999998,
         "vah": 0.21798599999999999,
-        "val": 0.20349599999999998,
+        "val": 0.203818,
         "rangeHigh": 0.2299,
         "rangeLow": 0.1977,
-        "distance": 2.065550239234444,
+        "distance": 1.9679732313575438,
         "inValueArea": true
       },
       "vwapW": {
-        "vwap": 0.2087316465186639,
-        "distance": 0.17647227312182445,
+        "vwap": 0.2085930329430973,
+        "distance": 0.29098146200705904,
         "above": true,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.21184144816492465,
-        "distance": -1.29410376896137,
+        "vwap": 0.21184390496463817,
+        "distance": -1.2480439147302862,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": 4220.799999999581,
-        "cumDelta": -1606247.3999999696,
-        "ratio": -0.1098568581800053,
+        "lastDelta": -130576.39999999962,
+        "cumDelta": -1760753.299999996,
+        "ratio": -0.12950435168007077,
         "bars": 3
       }
     }
@@ -2756,87 +2744,87 @@
   "LTC": {
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785298819,
     "confluence": {
-      "score": 15,
+      "score": 12,
       "total": 18
     },
     "data": {
-      "price": 45.05,
-      "px24h": -2.678764311946429,
-      "px4h": -2.657735522904071,
-      "oi24h": 0.3791938500889913,
-      "oi4h": -0.6237214656342813,
+      "price": 45.06,
+      "px24h": -2.509736045002156,
+      "px4h": -0.1993355481727493,
+      "oi24h": 0.7122275077596594,
+      "oi4h": 0.1282594429706632,
       "funding": 0.0,
-      "lsr": 2.7369,
+      "lsr": 2.6832,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 46.14700331071457,
-        "emaSlow": 46.45987855891821,
-        "emaMacro": 46.45987855891821,
+        "emaFast": 46.010659606000665,
+        "emaSlow": 46.41327464108947,
+        "emaMacro": 46.41327464108947,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 45.94205926172883,
-        "distUltra": -1.941704999871317
+        "ema8": 45.78777448751748,
+        "distUltra": -1.5894515417338804
       },
       "obv": {
-        "obvChange": -3.3248231335344083,
-        "priceChange": -4.779023049270455,
+        "obvChange": -13.210103753043805,
+        "priceChange": -5.092592592592596,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.3974083635629412,
-        "closedRatio": 1.4379439911938297,
-        "current": 65077.934000000096,
-        "avg": 163755.8238999998
+        "ratio": 0.12034185213611708,
+        "closedRatio": 1.4490024527082999,
+        "current": 20647.86299999999,
+        "avg": 171576.7426999999
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 45.91,
-          "bottom": 45.3,
-          "size": 1.346578366445915,
-          "distance": 0.5549389567147615
+          "bottom": 45.51,
+          "size": 0.8789277081959979,
+          "distance": 0.9986684420772208
         },
         "below": {
           "type": "bull",
           "top": 44.96,
           "bottom": 44.83,
           "size": 0.2899843854561735,
-          "distance": -0.1997780244173059
+          "distance": -0.22192632046160987
         },
         "count": 4
       },
       "poc": {
         "poc": 46.9268,
         "vah": 47.8112,
-        "val": 44.8096,
+        "val": 44.8632,
         "rangeHigh": 48.24,
         "rangeLow": 42.88,
-        "distance": 4.166037735849063,
+        "distance": 4.142920550377269,
         "inValueArea": true
       },
       "vwapW": {
-        "vwap": 46.728607967554,
-        "distance": -3.6350493657620295,
+        "vwap": 46.687356673615284,
+        "distance": -3.399971184302141,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 45.73946772124083,
-        "distance": -1.551106203431745,
+        "vwap": 45.752776758097276,
+        "distance": -1.4267478486576166,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": 806.9479999998875,
-        "cumDelta": -41212.05200000008,
-        "ratio": -0.10701532950334672,
+        "lastDelta": -1963.4209999999875,
+        "cumDelta": -47444.84299999979,
+        "ratio": -0.09399956892600043,
         "bars": 3
       }
     }
@@ -2845,43 +2833,43 @@
     "label": "NEUTRAL_weak",
     "bias": "SHORT SQUEEZE",
     "signal": "PIATTO",
-    "ts": 1785298819,
+    "ts": 1785313229,
     "since_ts": 1785270026,
     "confluence": {
       "score": 11,
       "total": 17
     },
     "data": {
-      "price": 0.1622,
-      "px24h": 4.57769181173438,
-      "px4h": -0.30731407498463453,
-      "oi24h": -7.003452799964002,
-      "oi4h": -0.9834511980090322,
+      "price": 0.1636,
+      "px24h": 4.137492043284536,
+      "px4h": 0.4297114794352402,
+      "oi24h": -6.2212186540943035,
+      "oi4h": -0.6238922757820663,
       "funding": 0.0,
-      "lsr": 1.8003,
+      "lsr": 1.8852,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.1607393783828042,
-        "emaSlow": 0.1639823912664381,
-        "emaMacro": 0.1639823912664381,
+        "emaFast": 0.16142444442931736,
+        "emaSlow": 0.16402995521456187,
+        "emaMacro": 0.16402995521456187,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.16075972782855247,
-        "distUltra": 0.8959160300293423
+        "ema8": 0.16171435621233088,
+        "distUltra": 1.1660336359953516
       },
       "obv": {
-        "obvChange": -918.0997269873081,
-        "priceChange": -5.745792222867103,
+        "obvChange": -182.88628270095742,
+        "priceChange": -7.260351673284178,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.16058473499999157,
-        "closedRatio": 2.25532570628748,
-        "current": 19119918.0,
-        "avg": 119064355.65
+        "ratio": 0.12270252286806617,
+        "closedRatio": 1.0490029090737798,
+        "current": 15113056.0,
+        "avg": 123168258.05
       },
       "fvg": {
         "above": {
@@ -2889,14 +2877,14 @@
           "top": 0.1725,
           "bottom": 0.1706,
           "size": 1.1137162954278927,
-          "distance": 5.178791615289759
+          "distance": 4.278728606356972
         },
         "below": {
           "type": "bull",
           "top": 0.1615,
           "bottom": 0.1599,
           "size": 1.0006253908693048,
-          "distance": -0.4315659679408176
+          "distance": -1.2836185819070849
         },
         "count": 2
       },
@@ -2906,70 +2894,70 @@
         "val": 0.158996,
         "rangeHigh": 0.1808,
         "rangeLow": 0.1532,
-        "distance": 2.02342786683106,
+        "distance": 1.150366748166256,
         "inValueArea": true
       },
       "vwapW": {
-        "vwap": 0.16548642329682367,
-        "distance": -1.8650613357494215,
+        "vwap": 0.16531972443197746,
+        "distance": -1.100730380618432,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.16593071599730622,
-        "distance": -2.127825445750229,
+        "vwap": 0.165810928248845,
+        "distance": -1.3937128711907367,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -4584510.0,
-        "cumDelta": 43052019.0,
-        "ratio": 0.08869772571957847,
+        "lastDelta": -1627310.0,
+        "cumDelta": 15672265.0,
+        "ratio": 0.03796154467050567,
         "bars": 3
       }
     }
   },
   "DOGE": {
-    "label": "SHORT_moderate",
+    "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "PIATTO",
-    "ts": 1785298819,
-    "since_ts": 1785298819,
+    "signal": "BUILD-UP",
+    "ts": 1785313229,
+    "since_ts": 1785313229,
     "confluence": {
-      "score": 11,
-      "total": 17
+      "score": 13,
+      "total": 16
     },
     "data": {
-      "price": 0.06998,
-      "px24h": 0.0,
-      "px4h": -1.2976022566995826,
-      "oi24h": 0.2631143193298619,
-      "oi4h": 0.07117766043547513,
+      "price": 0.07071,
+      "px24h": 0.769559640872166,
+      "px4h": 0.28364770954473384,
+      "oi24h": 2.659593428793151,
+      "oi4h": 1.8022405122238299,
       "funding": 0.0,
-      "lsr": 2.5842,
+      "lsr": 2.686,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.07076870357693758,
-        "emaSlow": 0.07146016143808498,
-        "emaMacro": 0.07146016143808498,
+        "emaFast": 0.07087659533381918,
+        "emaSlow": 0.07146298455794065,
+        "emaMacro": 0.07146298455794065,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.07055615089470073,
-        "distUltra": -0.8165849290171535
+        "ema8": 0.07074540131316227,
+        "distUltra": -0.05004044433301105
       },
       "obv": {
-        "obvChange": -335.24887119211996,
-        "priceChange": -3.710830126443111,
+        "obvChange": -848.7876785095407,
+        "priceChange": -3.5733769776322934,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.1646430431252528,
-        "closedRatio": 0.756035503208138,
-        "current": 116730763.0,
-        "avg": 708992987.4
+        "ratio": 0.0908491445116063,
+        "closedRatio": 0.8120480852523447,
+        "current": 64258777.0,
+        "avg": 707312956.5
       },
       "fvg": {
         "above": null,
@@ -2979,73 +2967,73 @@
       "poc": {
         "poc": 0.07230444999999999,
         "vah": 0.07437519999999999,
-        "val": 0.0713632,
+        "val": 0.0712879,
         "rangeHigh": 0.07558,
         "rangeLow": 0.06805,
-        "distance": 3.321591883395244,
+        "distance": 2.254914439258941,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 0.071146138734982,
-        "distance": -1.5266306145268855,
+        "vwap": 0.07112152829164657,
+        "distance": -0.5926873364110231,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.07227680168362281,
-        "distance": -3.0670998605146083,
+        "vwap": 0.07224383960917541,
+        "distance": -2.1369844370499553,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -2517221.0,
-        "cumDelta": -18374990.0,
-        "ratio": -0.015812212067421443,
+        "lastDelta": 2102101.0,
+        "cumDelta": 4345367.0,
+        "ratio": 0.003699271545721094,
         "bars": 3
       }
     }
   },
   "XRP": {
     "label": "NEUTRAL_weak",
-    "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "bias": "SHORT SQUEEZE",
+    "signal": "CONFERMA",
+    "ts": 1785313229,
     "since_ts": 1785284429,
     "confluence": {
       "score": 11,
       "total": 17
     },
     "data": {
-      "price": 1.0709,
-      "px24h": 1.4301951127107302,
-      "px4h": -0.7230926114767803,
-      "oi24h": -6.4198331371229465,
-      "oi4h": -2.786228083163155,
+      "price": 1.0871,
+      "px24h": 2.954825267544265,
+      "px4h": 0.6574074074073967,
+      "oi24h": -11.062578926124266,
+      "oi4h": -2.9904716998784933,
       "funding": 0.0,
-      "lsr": 2.6324,
+      "lsr": 2.4758,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 1.0724578448524156,
-        "emaSlow": 1.09255998405303,
-        "emaMacro": 1.09255998405303,
+        "emaFast": 1.0770879988917503,
+        "emaSlow": 1.0930009449074578,
+        "emaMacro": 1.0930009449074578,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 1.0691830351006977,
-        "distUltra": 0.16058662015157954
+        "ema8": 1.0763176692758514,
+        "distUltra": 1.0017795890504106
       },
       "obv": {
-        "obvChange": -182.4927608549445,
-        "priceChange": -4.654267153154758,
+        "obvChange": -597.5858407840157,
+        "priceChange": -4.28848185980979,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.18677778822466126,
-        "closedRatio": 1.6501755011415074,
-        "current": 12214113.799999988,
-        "avg": 65393823.94499998
+        "ratio": 0.16371049279865543,
+        "closedRatio": 1.5938526331516485,
+        "current": 11361716.9,
+        "avg": 69401274.80999993
       },
       "fvg": {
         "above": {
@@ -3053,130 +3041,130 @@
           "top": 1.1034,
           "bottom": 1.0955,
           "size": 0.7211319032405312,
-          "distance": 2.2971332524045156
+          "distance": 0.7726980038634866
         },
         "below": {
           "type": "bull",
-          "top": 1.0685,
-          "bottom": 1.0661,
-          "size": 0.2251195947847254,
-          "distance": -0.2241105612101931
+          "top": 1.0858,
+          "bottom": 1.0821,
+          "size": 0.34192773311154573,
+          "distance": -0.1195842148836222
         },
         "count": 4
       },
       "poc": {
         "poc": 1.090546,
         "vah": 1.118652,
-        "val": 1.0744,
+        "val": 1.073204,
         "rangeHigh": 1.1641,
         "rangeLow": 1.0445,
-        "distance": 1.8345317023064762,
-        "inValueArea": false
+        "distance": 0.31699015729924207,
+        "inValueArea": true
       },
       "vwapW": {
-        "vwap": 1.096427277251406,
-        "distance": -2.282620814956936,
+        "vwap": 1.0952152480586113,
+        "distance": -0.7592341389832699,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 1.0998010175866992,
-        "distance": -2.5823778240376494,
+        "vwap": 1.0993515694594458,
+        "distance": -1.1326285244281118,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": 1679143.8000000194,
-        "cumDelta": 37405636.60000107,
-        "ratio": 0.18613309722766908,
+        "lastDelta": -103253.70000001788,
+        "cumDelta": 31161203.300001025,
+        "ratio": 0.13554925892855757,
         "bars": 3
       }
     }
   },
   "UNI": {
-    "label": "NEUTRAL_weak",
+    "label": "LONG_moderate",
     "bias": "NEUTRAL",
-    "signal": "PIATTO",
-    "ts": 1785298819,
-    "since_ts": 1785298819,
+    "signal": "PARZIALE",
+    "ts": 1785313229,
+    "since_ts": 1785313229,
     "confluence": {
-      "score": 0,
-      "total": 0
+      "score": 11,
+      "total": 17
     },
     "data": {
-      "price": 3.754,
-      "px24h": 0.941113202473787,
-      "px4h": -3.272352486472553,
-      "oi24h": 4.301775377542498,
-      "oi4h": -0.8270627011757679,
+      "price": 3.836,
+      "px24h": 3.9284746681116234,
+      "px4h": 1.107011070110696,
+      "oi24h": 4.424737359252498,
+      "oi4h": 0.44735410233159517,
       "funding": 0.0,
-      "lsr": 1.5747,
+      "lsr": 1.5988,
       "lsrSource": "coinalyze",
       "trend": {
-        "label": "PULLBACK DOWN",
-        "emaFast": 3.8116719517260482,
-        "emaSlow": 3.757940529910434,
-        "emaMacro": 3.757940529910434,
+        "label": "TREND UP",
+        "emaFast": 3.824266799381322,
+        "emaSlow": 3.7635641863322844,
+        "emaMacro": 3.7635641863322844,
         "emaMacroPeriod": 50,
         "fastVsSlow": true,
-        "aboveMacro": false,
-        "ema8": 3.811210478547979,
-        "distUltra": -1.5011104443062784
+        "aboveMacro": true,
+        "ema8": 3.828669878376823,
+        "distUltra": 0.1914534774746511
       },
       "obv": {
-        "obvChange": 19.491309630569535,
-        "priceChange": 1.3214670981661254,
+        "obvChange": 21.185077237224128,
+        "priceChange": 3.3306473274241237,
         "diverge": false,
         "direction": 1
       },
       "rvol": {
-        "ratio": 0.24567809547419836,
-        "closedRatio": 1.0620622477798585,
-        "current": 754055.0,
-        "avg": 3069280.55
+        "ratio": 0.09875759442197593,
+        "closedRatio": 0.8891770586968429,
+        "current": 313858.0,
+        "avg": 3178064.45
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 3.858,
-          "bottom": 3.774,
-          "size": 2.2257551669316396,
-          "distance": 0.5327650506126802
+          "bottom": 3.854,
+          "size": 0.10378827192527253,
+          "distance": 0.4692387904066798
         },
         "below": {
           "type": "bull",
           "top": 3.595,
           "bottom": 3.548,
           "size": 1.3246899661781328,
-          "distance": -4.2354821523708
+          "distance": -6.282586027111566
         },
         "count": 3
       },
       "poc": {
-        "poc": 3.68128,
-        "vah": 3.84352,
-        "val": 3.48576,
+        "poc": 3.654975,
+        "vah": 3.8277,
+        "val": 3.48225,
         "rangeHigh": 3.96,
-        "rangeLow": 3.128,
-        "distance": -1.937133724027701,
-        "inValueArea": true
+        "rangeLow": 3.225,
+        "distance": -4.719108446298227,
+        "inValueArea": false
       },
       "vwapW": {
-        "vwap": 3.811165502472163,
-        "distance": -1.4212319679380918,
-        "above": false,
+        "vwap": 3.813373484357498,
+        "distance": 0.8818049367689349,
+        "above": true,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 3.603705437257166,
-        "distance": 4.253803908554432,
+        "vwap": 3.6084087953105923,
+        "distance": 6.612089101419868,
         "above": true,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -94169.0,
-        "cumDelta": -488407.0,
-        "ratio": -0.08186991285270483,
+        "lastDelta": 73160.0,
+        "cumDelta": -136277.0,
+        "ratio": -0.021294988176396013,
         "bars": 3
       }
     }
@@ -3185,86 +3173,86 @@
     "label": "LONG_moderate",
     "bias": "NEUTRAL",
     "signal": "PIATTO",
-    "ts": 1785298819,
+    "ts": 1785313229,
     "since_ts": 1785226839,
     "confluence": {
-      "score": 11,
+      "score": 9,
       "total": 17
     },
     "data": {
-      "price": 97.63,
-      "px24h": 0.020489703923774225,
-      "px4h": -3.5085985372603394,
-      "oi24h": 3.27472580291671,
-      "oi4h": -0.5063901782283203,
+      "price": 97.68,
+      "px24h": 0.32867707477404207,
+      "px4h": -0.751879699248115,
+      "oi24h": 2.980892859539482,
+      "oi4h": 0.30253879513638066,
       "funding": 0.0,
-      "lsr": 1.4882,
+      "lsr": 1.517,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND UP",
-        "emaFast": 98.69089078654316,
-        "emaSlow": 96.26749382395394,
-        "emaMacro": 96.26749382395394,
+        "emaFast": 98.59903776520007,
+        "emaSlow": 96.34270670224687,
+        "emaMacro": 96.34270670224687,
         "emaMacroPeriod": 50,
         "fastVsSlow": true,
         "aboveMacro": true,
-        "ema8": 98.89682934837889,
-        "distUltra": -1.2809605289935995
+        "ema8": 98.71185492528234,
+        "distUltra": -1.0453201655093713
       },
       "obv": {
-        "obvChange": 35.67068697813746,
-        "priceChange": 5.598789450929536,
-        "diverge": false,
-        "direction": 1
+        "obvChange": -149.72467823264057,
+        "priceChange": 3.014651628544323,
+        "diverge": true,
+        "direction": -1
       },
       "rvol": {
-        "ratio": 0.1613668339370263,
-        "closedRatio": 1.181879952897914,
-        "current": 24136.799999999974,
-        "avg": 149577.2050000027
+        "ratio": 0.04813577917827557,
+        "closedRatio": 0.8433671261651708,
+        "current": 7395.2999999999965,
+        "avg": 153634.16000000288
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 99.52,
-          "bottom": 98.37,
-          "size": 1.1690556063840514,
-          "distance": 0.757963740653497
+          "bottom": 98.66,
+          "size": 0.8716805189539828,
+          "distance": 1.0032760032759926
         },
         "below": {
           "type": "bull",
           "top": 95.13,
           "bottom": 93.86,
           "size": 1.3530790539100745,
-          "distance": -2.5606883130185394
+          "distance": -2.610565110565122
         },
         "count": 4
       },
       "poc": {
         "poc": 95.6029,
         "vah": 101.8804,
-        "val": 92.6734,
+        "val": 93.0082,
         "rangeHigh": 102.55,
         "rangeLow": 85.81,
-        "distance": -2.0763085117279427,
+        "distance": -2.126433251433253,
         "inValueArea": true
       },
       "vwapW": {
-        "vwap": 97.28537882310515,
-        "distance": 0.4261906382137484,
+        "vwap": 97.34515948649856,
+        "distance": 0.3953360552609918,
         "above": true,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 94.88768395361252,
-        "distance": 2.963836748046594,
+        "vwap": 94.95428068324276,
+        "distance": 2.923216622552012,
         "above": true,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -1470.99999999992,
-        "cumDelta": -2948.900000007183,
-        "ratio": -0.010054207277826133,
+        "lastDelta": 195.69999999998709,
+        "cumDelta": 5723.7999999905005,
+        "ratio": 0.018243326801512957,
         "bars": 3
       }
     }
@@ -3272,52 +3260,52 @@
   "TIA": {
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785284429,
     "confluence": {
       "score": 15,
       "total": 18
     },
     "data": {
-      "price": 0.3156,
-      "px24h": -4.276615104640583,
-      "px4h": -3.8684130368565306,
-      "oi24h": 1.8050706004224606,
-      "oi4h": -0.06775407436038149,
+      "price": 0.3177,
+      "px24h": -4.105040748566255,
+      "px4h": -0.4699248120300756,
+      "oi24h": 2.9195350354496092,
+      "oi4h": 1.28170882903098,
       "funding": 0.0,
-      "lsr": 0.7668,
+      "lsr": 0.7547,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.3288867734850212,
-        "emaSlow": 0.34512917255597975,
-        "emaMacro": 0.34512917255597975,
+        "emaFast": 0.3277408793375522,
+        "emaSlow": 0.344228003329914,
+        "emaMacro": 0.344228003329914,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.32568181762320253,
-        "distUltra": -3.0956034625386097
+        "ema8": 0.3246735124723674,
+        "distUltra": -2.147853829918123
       },
       "obv": {
-        "obvChange": -99.60815554161292,
-        "priceChange": -12.752420470262788,
+        "obvChange": -145.5452363957912,
+        "priceChange": -12.30684326710816,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.25297355710788805,
-        "closedRatio": 1.2930502217824482,
-        "current": 1375068.0,
-        "avg": 5435619.5
+        "ratio": 0.08962158019337847,
+        "closedRatio": 1.031621240387237,
+        "current": 499055.0,
+        "avg": 5568469.1
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 0.3253,
-          "bottom": 0.3172,
-          "size": 2.553593947036569,
-          "distance": 0.5069708491761693
+          "bottom": 0.3211,
+          "size": 1.308003737153529,
+          "distance": 1.0701920050362022
         },
         "below": null,
         "count": 6
@@ -3328,107 +3316,107 @@
         "val": 0.323264,
         "rangeHigh": 0.4252,
         "rangeLow": 0.3144,
-        "distance": 14.540557667934106,
+        "distance": 13.783443500157396,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 0.34502499623548727,
-        "distance": -8.586333326199803,
+        "vwap": 0.34411767878679184,
+        "distance": -7.647871762815678,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.38126587982083593,
-        "distance": -17.27557678431323,
+        "vwap": 0.3809148890095115,
+        "distance": -16.569289053948076,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -285686.0,
-        "cumDelta": -2306546.0,
-        "ratio": -0.1888411321432554,
+        "lastDelta": -100347.0,
+        "cumDelta": -1601013.0,
+        "ratio": -0.12062965001486196,
         "bars": 3
       }
     }
   },
   "WLD": {
     "label": "SHORT_strong",
-    "bias": "BEARISH AGGRESSIVO",
-    "signal": "CONFERMA",
-    "ts": 1785298819,
+    "bias": "NEUTRAL",
+    "signal": "PULLBACK",
+    "ts": 1785313229,
     "since_ts": 1785270027,
     "confluence": {
-      "score": 18,
+      "score": 12,
       "total": 18
     },
     "data": {
-      "price": 0.2977,
-      "px24h": -7.200748129675796,
-      "px4h": -4.705505761843787,
-      "oi24h": 5.569145081336256,
-      "oi4h": 2.7012805247526765,
+      "price": 0.308,
+      "px24h": -3.6898061288305124,
+      "px4h": 2.0205366015236814,
+      "oi24h": 3.41379903597395,
+      "oi4h": -0.9903074807505056,
       "funding": 0.0,
-      "lsr": 1.0048,
+      "lsr": 1.0121,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.32033619460524665,
-        "emaSlow": 0.3483169663719702,
-        "emaMacro": 0.3483169663719702,
+        "emaFast": 0.319425300757996,
+        "emaSlow": 0.34702691916476947,
+        "emaMacro": 0.34702691916476947,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.31434718464227523,
-        "distUltra": -5.295795685658704
+        "ema8": 0.3142453411415227,
+        "distUltra": -1.9874093021828008
       },
       "obv": {
-        "obvChange": -292.6427172957306,
-        "priceChange": -22.761484557487673,
+        "obvChange": -269.4640544109651,
+        "priceChange": -19.942797711908476,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.24591625021258157,
-        "closedRatio": 1.9825287780205685,
-        "current": 13552306.0,
-        "avg": 55109436.6
+        "ratio": 0.2650496649072485,
+        "closedRatio": 0.8941778646837355,
+        "current": 15016818.0,
+        "avg": 56656619.45
       },
       "fvg": {
         "above": {
           "type": "bear",
-          "top": 0.3123,
-          "bottom": 0.2989,
-          "size": 4.483104717296762,
-          "distance": 0.40309035942223004
+          "top": 0.3379,
+          "bottom": 0.3279,
+          "size": 3.0497102775236207,
+          "distance": 6.4610389610389705
         },
         "below": null,
         "count": 5
       },
       "poc": {
         "poc": 0.38177,
-        "vah": 0.42192,
-        "val": 0.36352,
+        "vah": 0.42484,
+        "val": 0.36497999999999997,
         "rangeHigh": 0.4409,
         "rangeLow": 0.2949,
-        "distance": 28.239838763856223,
+        "distance": 23.9512987012987,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 0.3509055834589296,
-        "distance": -15.190862149723689,
+        "vwap": 0.3494394775080112,
+        "distance": -11.887459826876274,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.3802942283658043,
-        "distance": -21.744802365567562,
+        "vwap": 0.3796633192606136,
+        "distance": -18.901831075061754,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -653918.0,
-        "cumDelta": -23116787.0,
-        "ratio": -0.14369804243320392,
+        "lastDelta": 3887898.0,
+        "cumDelta": -14124443.0,
+        "ratio": -0.08074157380433578,
         "bars": 3
       }
     }
@@ -3436,81 +3424,81 @@
   "POL": {
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785298819,
     "confluence": {
       "score": 12,
       "total": 18
     },
     "data": {
-      "price": 0.07062,
-      "px24h": -3.419037199124729,
-      "px4h": -2.2695820647661256,
-      "oi24h": 2.865777132992646,
-      "oi4h": 0.6243211483123401,
+      "price": 0.07159,
+      "px24h": -2.3195524628189292,
+      "px4h": 0.6184118060435642,
+      "oi24h": 2.8474658320703528,
+      "oi4h": 1.3395569471858157,
       "funding": 0.0,
-      "lsr": 1.145,
+      "lsr": 1.1594,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.07320240938057118,
-        "emaSlow": 0.07633838923031346,
-        "emaMacro": 0.07633838923031346,
+        "emaFast": 0.07310511562982101,
+        "emaSlow": 0.07619682907535431,
+        "emaMacro": 0.07619682907535431,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.07248814574792269,
-        "distUltra": -2.577174141575031
+        "ema8": 0.07248855780393988,
+        "distUltra": -1.2395857100236625
       },
       "obv": {
-        "obvChange": -177.98923405534345,
-        "priceChange": -12.112535789866802,
+        "obvChange": -191.97912208431487,
+        "priceChange": -12.204096651539311,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.3367072718309623,
-        "closedRatio": 1.3911876035952488,
-        "current": 5553609.0,
-        "avg": 16493879.0
+        "ratio": 0.16061591240207937,
+        "closedRatio": 1.1910966252341233,
+        "current": 2743082.0,
+        "avg": 17078519.55
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 0.07219,
-          "bottom": 0.07116,
-          "size": 1.4474423833614434,
-          "distance": 0.764655904842819
+          "bottom": 0.07177,
+          "size": 0.585202730946083,
+          "distance": 0.2514317642128784
         },
         "below": null,
         "count": 6
       },
       "poc": {
         "poc": 0.0765918,
-        "vah": 0.0826344,
-        "val": 0.0754728,
+        "vah": 0.0827836,
+        "val": 0.0757712,
         "rangeHigh": 0.08532,
         "rangeLow": 0.0704,
-        "distance": 8.456244689889548,
+        "distance": 6.9867299902220985,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 0.07621076758653465,
-        "distance": -7.3621717300824026,
+        "vwap": 0.07602394240611152,
+        "distance": -5.84545113744886,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.07925470331503105,
-        "distance": -10.920113195843165,
+        "vwap": 0.07922367371622134,
+        "distance": -9.648219222452273,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -1894689.0,
-        "cumDelta": -1977127.0,
-        "ratio": -0.05358791695842921,
+        "lastDelta": -928554.0,
+        "cumDelta": -1284433.0,
+        "ratio": -0.027903452450829737,
         "bars": 3
       }
     }
@@ -3519,80 +3507,80 @@
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
     "signal": "PARZIALE",
-    "ts": 1785298819,
+    "ts": 1785313229,
     "since_ts": 1785284429,
     "confluence": {
       "score": 15,
       "total": 18
     },
     "data": {
-      "price": 0.1854,
-      "px24h": -7.253626813406696,
-      "px4h": -3.9875712066286817,
-      "oi24h": 2.2115206070306503,
-      "oi4h": 0.21991177988522462,
+      "price": 0.1878,
+      "px24h": -5.34274193548387,
+      "px4h": -0.687466948704387,
+      "oi24h": 0.960827048581143,
+      "oi4h": -0.2558793944189552,
       "funding": 0.0,
-      "lsr": 0.7403,
+      "lsr": 0.7437,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.1969657237513129,
-        "emaSlow": 0.21135746271452735,
-        "emaMacro": 0.21135746271452735,
+        "emaFast": 0.19598046447685083,
+        "emaSlow": 0.21055752606160438,
+        "emaMacro": 0.21055752606160438,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.19409804719584928,
-        "distUltra": -4.481264660572676
+        "ema8": 0.1932589749794876,
+        "distUltra": -2.8246941597755133
       },
       "obv": {
-        "obvChange": -727.7499889103485,
-        "priceChange": -22.727272727272734,
+        "obvChange": -695.6298613484398,
+        "priceChange": -21.209575808483837,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.12865475265644763,
-        "closedRatio": 1.3202863807882896,
-        "current": 965572.5999999988,
-        "avg": 7505145.204999998
+        "ratio": 0.07374601824737659,
+        "closedRatio": 0.7572211002581214,
+        "current": 557505.2000000001,
+        "avg": 7559800.694999998
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 0.1928,
-          "bottom": 0.1865,
-          "size": 3.3780160857908843,
-          "distance": 0.5933117583602965
+          "bottom": 0.1905,
+          "size": 1.2073490813648275,
+          "distance": 1.4376996805111864
         },
         "below": null,
         "count": 6
       },
       "poc": {
         "poc": 0.2336325,
-        "vah": 0.247653,
-        "val": 0.226083,
+        "vah": 0.248372,
+        "val": 0.226802,
         "rangeHigh": 0.257,
         "rangeLow": 0.1851,
-        "distance": 26.015372168284777,
+        "distance": 24.404952076677315,
         "inValueArea": false
       },
       "vwapW": {
-        "vwap": 0.2132652395039404,
-        "distance": -13.112891519024936,
+        "vwap": 0.21236202004669621,
+        "distance": -11.660286543352392,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.23139998183209806,
-        "distance": -19.922206331696188,
+        "vwap": 0.23126139914292818,
+        "distance": -18.8796743878315,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -49200.19999999972,
-        "cumDelta": -2839007.6000000276,
-        "ratio": -0.17622883591388946,
+        "lastDelta": -33614.80000000005,
+        "cumDelta": -2522284.40000002,
+        "ratio": -0.155784203246978,
         "bars": 3
       }
     }
@@ -3600,87 +3588,87 @@
   "PEPE": {
     "label": "SHORT_strong",
     "bias": "NEUTRAL",
-    "signal": "PARZIALE",
-    "ts": 1785298819,
+    "signal": "PIATTO",
+    "ts": 1785313229,
     "since_ts": 1785298819,
     "confluence": {
       "score": 12,
       "total": 18
     },
     "data": {
-      "price": 0.0027223,
-      "px24h": -3.1175486672123625,
-      "px4h": -2.5906179554156012,
-      "oi24h": -1.5476706494999617,
-      "oi4h": -1.333685465027599,
+      "price": 0.0027445,
+      "px24h": -2.403897443191925,
+      "px4h": 0.003643783704993434,
+      "oi24h": -1.9151546753552726,
+      "oi4h": -0.1379074127469078,
       "funding": 0.0,
-      "lsr": 2.2776,
+      "lsr": 2.1898,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.0028120025789867037,
-        "emaSlow": 0.0028290710930354247,
-        "emaMacro": 0.0028290710930354247,
+        "emaFast": 0.0028073430106035934,
+        "emaSlow": 0.002827390126076126,
+        "emaMacro": 0.002827390126076126,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.00279164104753503,
-        "distUltra": -2.4838812137490516
+        "ema8": 0.002788765259193912,
+        "distUltra": -1.5872708915882983
       },
       "obv": {
-        "obvChange": -92.29140523282668,
-        "priceChange": -7.411060472076731,
+        "obvChange": -65.76867999227319,
+        "priceChange": -6.039441248972875,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.12314711470243238,
-        "closedRatio": 0.7132397562472848,
-        "current": 1619714288.0,
-        "avg": 13152677526.5
+        "ratio": 0.052958336886651254,
+        "closedRatio": 0.5577454656118801,
+        "current": 702061403.0,
+        "avg": 13256862739.15
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 0.0027813,
-          "bottom": 0.0027375,
-          "size": 1.6000000000000032,
-          "distance": 0.5583513940418006
+          "bottom": 0.0027766,
+          "size": 0.1692717712309963,
+          "distance": 1.1696119511750842
         },
         "below": {
           "type": "bull",
           "top": 0.002717,
           "bottom": 0.0026909,
           "size": 0.9699357092422544,
-          "distance": -0.19468831502774064
+          "distance": -1.0020040080160386
         },
         "count": 4
       },
       "poc": {
         "poc": 0.0027761929999999997,
-        "vah": 0.002916596,
+        "vah": 0.00291109,
         "val": 0.0027018619999999998,
         "rangeHigh": 0.0031038,
         "rangeLow": 0.0025532,
-        "distance": 1.9796862946772853,
+        "distance": 1.1547822918564308,
         "inValueArea": true
       },
       "vwapW": {
-        "vwap": 0.002869251549439916,
-        "distance": -5.121598678533477,
+        "vwap": 0.00286782140082409,
+        "distance": -4.303664125967672,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.0028029343312045685,
-        "distance": -2.8767827453851096,
+        "vwap": 0.002803637145040188,
+        "distance": -2.1128677491301686,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -356756378.0,
-        "cumDelta": -1471656916.0,
-        "ratio": -0.08923472919164072,
+        "lastDelta": -141424567.0,
+        "cumDelta": -1478119719.0,
+        "ratio": -0.0845749995181518,
         "bars": 3
       }
     }
@@ -3689,80 +3677,80 @@
     "label": "SHORT_moderate",
     "bias": "NEUTRAL",
     "signal": "PIATTO",
-    "ts": 1785298819,
+    "ts": 1785313229,
     "since_ts": 1785298819,
     "confluence": {
       "score": 11,
       "total": 17
     },
     "data": {
-      "price": 0.07975,
-      "px24h": 0.885515496521197,
-      "px4h": -4.57101830800527,
-      "oi24h": -2.895446339656809,
-      "oi4h": -0.9372200356522029,
+      "price": 0.08082,
+      "px24h": -0.049468216670787005,
+      "px4h": 0.37257824143071117,
+      "oi24h": -2.404305106957939,
+      "oi4h": 0.2984205615875851,
       "funding": 0.0,
-      "lsr": 0.6556,
+      "lsr": 0.6692,
       "lsrSource": "coinalyze",
       "trend": {
         "label": "TREND DOWN",
-        "emaFast": 0.08193517886135378,
-        "emaSlow": 0.08336488742277694,
-        "emaMacro": 0.08336488742277694,
+        "emaFast": 0.08194668980312841,
+        "emaSlow": 0.08331379544437428,
+        "emaMacro": 0.08331379544437428,
         "emaMacroPeriod": 50,
         "fastVsSlow": false,
         "aboveMacro": false,
-        "ema8": 0.0816199850395628,
-        "distUltra": -2.291087211859183
+        "ema8": 0.08168295132706732,
+        "distUltra": -1.056464431129537
       },
       "obv": {
-        "obvChange": -59.1973086372673,
-        "priceChange": -5.969797074091563,
+        "obvChange": -29.003744798459895,
+        "priceChange": -4.68934561776518,
         "diverge": false,
         "direction": -1
       },
       "rvol": {
-        "ratio": 0.22296635113221477,
-        "closedRatio": 1.2526639558937718,
-        "current": 7277688.0,
-        "avg": 32640297.35
+        "ratio": 0.20744974522119838,
+        "closedRatio": 1.4375607027016672,
+        "current": 7131088.0,
+        "avg": 34375014.5
       },
       "fvg": {
         "above": {
           "type": "bear",
           "top": 0.08235,
-          "bottom": 0.08025,
-          "size": 2.6168224299065477,
-          "distance": 0.6269592476489034
+          "bottom": 0.08136,
+          "size": 1.2168141592920412,
+          "distance": 0.6681514476614685
         },
         "below": null,
-        "count": 4
+        "count": 3
       },
       "poc": {
         "poc": 0.08509485,
-        "vah": 0.0916119,
-        "val": 0.08008900000000001,
+        "vah": 0.091423,
+        "val": 0.07971120000000001,
         "rangeHigh": 0.09709,
         "rangeLow": 0.0782,
-        "distance": 6.702006269592474,
-        "inValueArea": false
+        "distance": 5.289346696362282,
+        "inValueArea": true
       },
       "vwapW": {
-        "vwap": 0.08338523050344919,
-        "distance": -4.419524274501777,
+        "vwap": 0.08326398630850018,
+        "distance": -3.091356086367694,
         "above": false,
         "bars": 42
       },
       "vwapM": {
-        "vwap": 0.08798202464108144,
-        "distance": -9.413314452432282,
+        "vwap": 0.08776728895760912,
+        "distance": -8.063697810043319,
         "above": false,
         "bars": 130
       },
       "delta": {
-        "lastDelta": -1306130.0,
-        "cumDelta": -1631338.0,
-        "ratio": -0.023383652860909595,
+        "lastDelta": -1226324.0,
+        "cumDelta": -844692.0,
+        "ratio": -0.008669324408863375,
         "bars": 3
       }
     }
