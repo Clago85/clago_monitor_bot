@@ -1313,6 +1313,26 @@ BREADTH_FILTER = True
 BREADTH_LONG_MIN = 25.0   # se meno del 25% delle coin e' in rialzo 24h -> niente nuovi LONG
 BREADTH_SHORT_MAX = 75.0  # se piu' del 75% e' in rialzo -> niente nuovi SHORT
 
+# TRAILING VIRTUALE — SOLO MISURA, NON CHIUDE NULLA.
+# A ogni run controlla se una posizione ha restituito oltre TRAIL_PCT del suo
+# picco: in quel caso registra il livello di uscita che il trailing avrebbe
+# ottenuto. Il trade resta aperto e gestito come sempre dalla struttura: alla
+# chiusura avremo affiancati "risultato reale" e "risultato col trailing",
+# cosi' la decisione se attivarlo davvero si prende sui numeri e non a intuito.
+# Misurato sulle 16 posizioni reali del 26-30/07/2026, simulando il trailing
+# come lavora DAVVERO (picco aggiornato candela per candela, senza sapere in
+# anticipo dove arrivera'). Non fare nulla: +73.5 punti.
+#     30% del picco da +2%  ->  27.6   (disastroso: esce al primo respiro)
+#     30% del picco da +5%  ->  55.3
+#     30% del picco da +8%  ->  71.1
+#     30% del picco da +10% ->  78.7   <-- il migliore, ma solo +5 punti
+#     50% del picco da +5%  ->  77.7
+# Conclusione: il trailing aiuta solo se si attiva TARDI. Attivarlo presto
+# uccide i trade prima che il movimento inizi. Per questo la soglia e' a +10%.
+TRAIL_TRACK = True
+TRAIL_PCT = 0.30        # restituzione massima tollerata del picco
+TRAIL_MIN_PEAK = 10.0   # si arma solo da +10% di guadagno (vedi tabella sopra)
+
 
 def compute_market_breadth(all_data):
     """Percentuale di coin dell'universo in rialzo sulle 24h.
@@ -1607,6 +1627,15 @@ def update_performance(new_state, last_state):
             tr["min_favor"] = round(min(prev_trough, favor), 2)
             if favor < prev_trough or "trough_ts" not in tr:
                 tr["trough_ts"] = now
+            # TRAILING VIRTUALE: registra (una sola volta) dove sarebbe uscito
+            if TRAIL_TRACK and "trail_exit_pct" not in tr:
+                _pk = tr.get("max_favor", 0.0) or 0.0
+                if _pk >= TRAIL_MIN_PEAK:
+                    _lvl = _pk * (1.0 - TRAIL_PCT)
+                    if favor <= _lvl:
+                        tr["trail_exit_pct"] = round(_lvl, 2)
+                        tr["trail_exit_ts"] = now
+                        tr["trail_peak_at_exit"] = round(_pk, 2)
         # Chiusura per ROTTURA STRUTTURA (non per semplice NEUTRAL).
         # Eccezione: se il segnale si è GIRATO in direzione opposta, chiudi comunque.
         flipped = d_now in ("LONG", "SHORT") and d_now != direction
@@ -1626,6 +1655,11 @@ def update_performance(new_state, last_state):
             tr["giveback_pct"] = round(_peak - _res, 2)
             tr["giveback_share"] = round((_peak - _res) / _peak, 2) if _peak > 0 else 0.0
             tr["hours_after_peak"] = round((now - tr.get("peak_ts", tr["entry_ts"])) / 3600, 1)
+            # confronto finale: cosa avrebbe reso il trailing su questo trade
+            if TRAIL_TRACK:
+                _tr = tr.get("trail_exit_pct")
+                tr["trail_result_pct"] = _tr if _tr is not None else tr.get("result_pct", 0.0)
+                tr["trail_delta"] = round(tr["trail_result_pct"] - tr.get("result_pct", 0.0), 2)
             tr["outcome"] = "win" if tr.get("pnl_pct", 0) > 0 else "loss"
             tr["closed_to"] = d_now
             tr["close_reason"] = "flip" if flipped else "struttura"
