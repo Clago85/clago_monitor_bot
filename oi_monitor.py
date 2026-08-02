@@ -2142,6 +2142,25 @@ def _structure_broken(direction, data):
     return False
 
 
+def _conf_raw_of(aid, state):
+    """Punteggio grezzo della confluenza al momento dell'ingresso, es. '17/23'."""
+    c = (state.get(aid) or {}).get("confluence") or {}
+    sc, tot = c.get("score"), c.get("total")
+    if sc is None or not tot:
+        return None
+    return f"{sc}/{tot}"
+
+
+def _conf_pct_of(aid, state):
+    """Frazione di confluenza in percentuale: e' il numero continuo su cui
+    tarare soglie e size, al posto delle etichette strong/moderate."""
+    c = (state.get(aid) or {}).get("confluence") or {}
+    sc, tot = c.get("score"), c.get("total")
+    if sc is None or not tot:
+        return None
+    return round(sc / tot * 100, 1)
+
+
 def update_performance(new_state, last_state):
     """Traccia le performance dei segnali. performance.json ha due liste:
       - open:   trade attivi (LONG/SHORT in corso), aggiornati a ogni run col P&L live
@@ -2243,6 +2262,16 @@ def update_performance(new_state, last_state):
                     "entry_ts": now,
                     "entry_price": p0,
                     "entry_strength": lab.split("_")[1] if "_" in lab else "",
+                    # FRAZIONE DI CONFLUENZA ESATTA (0-100). Le etichette
+                    # strong/moderate sono soglie arbitrarie: questo numero
+                    # permette di trovare la soglia giusta sui dati veri, o di
+                    # dimensionare la size in modo continuo invece che binario.
+                    "entry_conf_pct": _conf_pct_of(aid, new_state),
+                    "entry_conf": _conf_raw_of(aid, new_state),
+                    # contesto d'ingresso: serve a capire QUALI condizioni pagano
+                    "entry_state": ((new_state.get(aid) or {}).get("entry") or {}).get("state"),
+                    "entry_wave": (((new_state.get(aid) or {}).get("data") or {}).get("wave") or {}).get("confluence"),
+                    "entry_zone_src": ((new_state.get(aid) or {}).get("entry") or {}).get("zoneSrc"),
                     "last_price": p0,
                     "pnl_pct": 0.0,
                     "max_favor": 0.0,
@@ -2435,6 +2464,7 @@ def main():
                     "entryZone": zone,
                 },
                 "entry": ({"state": est,
+                           "zoneSrc": (zone or {}).get("src"),
                            "zoneLo": zone.get("lo") if zone else None,
                            "zoneHi": zone.get("hi") if zone else None,
                            "distATR": zone.get("distATR") if zone else None,
