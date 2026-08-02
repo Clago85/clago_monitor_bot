@@ -135,6 +135,10 @@ WEEKEND_BLOCK = True
 # livello, conta QUANTI riferimenti si accatastano allo stesso prezzo.
 # ============================================================================
 SWING_ZONES = True
+# WAVE: momentum multi-orizzonte (porting dell'indicatore dell'utente).
+# Parametri come nel Pine: scala 50 per BTC / 100 per le altre, signal DEMA
+# adattiva su ADX, CVD da geometria della candela, stack EMA 8/12/21.
+WAVE_ON = True
 PIVOT_LEN = 8
 ZONE_TOL_PCT = 0.45
 VOL_BOOST = 0.66
@@ -565,6 +569,211 @@ def compute_poc_swing(klines, current_price, lookback_bars=126):
         "rangeLow": range_low,
         "distance": ((poc - current_price) / current_price) * 100 if current_price else 0,
         "inValueArea": current_price >= val and current_price <= vah,
+    }
+
+
+def _series_rma(vals, n):
+    """RMA (media di Wilder) su tutta la serie."""
+    if not vals or len(vals) < n:
+        return []
+    out = [None] * (n - 1)
+    acc = sum(vals[:n]) / n
+    out.append(acc)
+    for v in vals[n:]:
+        acc = (acc * (n - 1) + v) / n
+        out.append(acc)
+    return out
+
+
+def _series_ema(vals, n):
+    if not vals or len(vals) < n:
+        return []
+    k = 2.0 / (n + 1)
+    out = [None] * (n - 1)
+    e = sum(vals[:n]) / n
+    out.append(e)
+    for v in vals[n:]:
+        e = v * k + e * (1 - k)
+        out.append(e)
+    return out
+
+
+def _series_dema(vals, n):
+    """DEMA = 2*EMA - EMA(EMA): la signal line della WAVE."""
+    e1 = _series_ema(vals, n)
+    clean = [x for x in e1 if x is not None]
+    if len(clean) < n:
+        return []
+    e2 = _series_ema(clean, n)
+    pad = len(e1) - len(clean)
+    out = [None] * len(e1)
+    for i, v in enumerate(e2):
+        if v is None:
+            continue
+        out[pad + i] = 2 * clean[pad + i - pad] - v if (pad + i) < len(e1) else None
+    # ricalcolo lineare piu' semplice e robusto
+    out = [None] * len(vals)
+    off = len(vals) - len(clean)
+    for i in range(len(e2)):
+        if e2[i] is None:
+            continue
+        idx = off + i
+        if 0 <= idx < len(vals):
+            out[idx] = 2 * clean[i] - e2[i]
+    return out
+
+
+def compute_adx(klines, period=14):
+    """ADX di Wilder: misura la FORZA del trend, non la direzione.
+    Serve alla WAVE per scegliere quanto reattiva deve essere la signal line."""
+    if not klines or len(klines) < period * 2 + 2:
+        return None
+    trs, pdm, ndm = [], [], []
+    for i in range(1, len(klines)):
+        h, l = _kline_val(klines[i], "h"), _kline_val(klines[i], "l")
+        ph, pl = _kline_val(klines[i - 1], "h"), _kline_val(klines[i - 1], "l")
+        pc = _kline_val(klines[i - 1], "c")
+        if None in (h, l, ph, pl, pc):
+            continue
+        trs.append(max(h - l, abs(h - pc), abs(l - pc)))
+        up, dn = h - ph, pl - l
+        pdm.append(up if (up > dn and up > 0) else 0.0)
+        ndm.append(dn if (dn > up and dn > 0) else 0.0)
+    if len(trs) < period * 2:
+        return None
+    atr_s = _series_rma(trs, period)
+    pdi_s = _series_rma(pdm, period)
+    ndi_s = _series_rma(ndm, period)
+    dx = []
+    for i in range(len(atr_s)):
+        if atr_s[i] is None or not atr_s[i] or pdi_s[i] is None or ndi_s[i] is None:
+            continue
+        pdi = 100 * pdi_s[i] / atr_s[i]
+        ndi = 100 * ndi_s[i] / atr_s[i]
+        den = pdi + ndi
+        dx.append(100 * abs(pdi - ndi) / den if den else 0.0)
+    if len(dx) < period:
+        return None
+    adx_s = _series_rma(dx, period)
+    vals = [v for v in adx_s if v is not None]
+    return vals[-1] if vals else None
+
+
+def compute_wave(klines, asset_type="OTHER", sign=7, vol_period=20):
+    """WAVE (porting dell'indicatore dell'utente): momentum multi-orizzonte.
+    Confronta una media brevissima (5) con quelle a 10/20/40/80 e pesa di piu'
+    gli scarti sulle finestre corte: e' un momentum che vede insieme la spinta
+    immediata e quella di fondo. La signal line e' una DEMA la cui reattivita'
+    dipende dall'ADX (trend forte -> signal veloce, range -> signal lenta).
+    Aggiunge CVD (delta proxy dalla geometria della candela) e stack EMA 8/12/21.
+    Ritorna lo stato corrente, non la serie."""
+    if not klines or len(klines) < 90:
+        return None
+    closes = [_kline_val(k, "c") for k in klines]
+    highs = [_kline_val(k, "h") for k in klines]
+    lows = [_kline_val(k, "l") for k in klines]
+    vols = [_kline_val(k, "v") or 0.0 for k in klines]
+    if any(x is None for x in closes[-90:]):
+        return None
+    mom_scale = 50.0 if asset_type == "BTC" else 100.0
+    vol_mult = 2.0 if asset_type == "BTC" else 1.5
+
+    a0 = _series_rma(closes, 5)
+    a1 = _series_rma(closes, 10)
+    a2 = _series_rma(closes, 20)
+    a3 = _series_rma(closes, 40)
+    a4 = _series_rma(closes, 80)
+    n = len(closes)
+    vol_sma = _series_rma(vols, vol_period)
+    dsl = []
+    for i in range(n):
+        vs = [a0[i] if i < len(a0) else None, a1[i] if i < len(a1) else None,
+              a2[i] if i < len(a2) else None, a3[i] if i < len(a3) else None,
+              a4[i] if i < len(a4) else None]
+        if any(v is None or not v for v in vs):
+            continue
+        avg, avg1, avg2, avg3, avg4 = vs
+        m1 = mom_scale * (avg - avg1) / avg1
+        m2 = mom_scale * (avg - avg2) / avg2
+        m3 = mom_scale * (avg - avg3) / avg3
+        m4 = mom_scale * (avg - avg4) / avg4
+        v = (m4 + m3 * 2.0 + m2 * 4.0 + m1 * 8.0) / 4.0
+        vsma = vol_sma[i] if i < len(vol_sma) and vol_sma[i] else None
+        if vsma and vols[i] > vsma * vol_mult:
+            v *= 1.5
+        dsl.append(v)
+    if len(dsl) < 30:
+        return None
+
+    adx = compute_adx(klines) or 0.0
+    sig_len = 9 if adx > 25 else (12 if adx > 23 else 16)
+    sig_s = _series_dema(dsl, sig_len)
+    sig_vals = [x for x in sig_s if x is not None]
+    if not sig_vals:
+        return None
+    wave_v, wave_sig = dsl[-1], sig_vals[-1]
+
+    # CVD proxy: dove chiude la candela dentro il suo range = pressione
+    cvd, cvd_hist = 0.0, []
+    for i in range(len(klines)):
+        h, l, c, v = highs[i], lows[i], closes[i], vols[i]
+        if None in (h, l, c):
+            cvd_hist.append(cvd)
+            continue
+        rng = h - l
+        buy = v * (c - l) / rng if rng > 0 else v * 0.5
+        sell = v * (h - c) / rng if rng > 0 else v * 0.5
+        cvd += buy - sell
+        cvd_hist.append(cvd)
+    cvd_sig_s = _series_ema(cvd_hist, 21)
+    cvd_sig_vals = [x for x in cvd_sig_s if x is not None]
+    cvd_up = bool(cvd_sig_vals) and cvd_hist[-1] >= cvd_sig_vals[-1]
+
+    e8 = compute_ema(closes, 8)
+    e12 = compute_ema(closes, 12)
+    e21 = compute_ema(closes, 21)
+    bull_stack = bool(e8 and e12 and e21 and e8 > e12 > e21)
+    bear_stack = bool(e8 and e12 and e21 and e8 < e12 < e21)
+
+    # velocita' e curvatura -> picco / esaurimento della spinta
+    vel = [dsl[i] - dsl[i - 1] for i in range(1, len(dsl))]
+    vel_e = _series_ema(vel, 3)
+    vel_now = next((x for x in reversed(vel_e) if x is not None), 0.0)
+    vel_prev = None
+    seen = 0
+    for x in reversed(vel_e):
+        if x is None:
+            continue
+        seen += 1
+        if seen == 2:
+            vel_prev = x
+            break
+    curv = (vel_now - vel_prev) if vel_prev is not None else 0.0
+    min_amp = 0.40 if asset_type == "BTC" else 0.25
+    decel = 0
+    if len(dsl) > 5:
+        for i in range(len(dsl) - 1, max(0, len(dsl) - 6), -1):
+            v_i = dsl[i] - dsl[i - 1]
+            v_p = dsl[i - 1] - dsl[i - 2] if i >= 2 else 0.0
+            c_i = v_i - v_p
+            if (dsl[i] > 0 and c_i < 0) or (dsl[i] < 0 and c_i > 0):
+                decel += 1
+            else:
+                break
+    trending = adx > 23
+    near_peak = wave_v > 0 and vel_now > 0 and decel >= 3 and trending and abs(wave_v) > min_amp
+    near_trough = wave_v < 0 and vel_now < 0 and decel >= 3 and trending and abs(wave_v) > min_amp
+
+    bull = wave_v > wave_sig
+    return {
+        "value": round(wave_v, 3), "signal": round(wave_sig, 3),
+        "bull": bull, "adx": round(adx, 1), "trending": trending,
+        "velocity": round(vel_now, 3), "curvature": round(curv, 4),
+        "cvdUp": cvd_up, "emaStack": "BULL" if bull_stack else ("BEAR" if bear_stack else "MISTA"),
+        "nearPeak": near_peak, "nearTrough": near_trough,
+        # CONFLUENZA come nel tuo indicatore: stack EMA + CVD + WAVE vs signal
+        "confluence": "LONG" if (bull_stack and cvd_up and bull)
+                      else ("SHORT" if (bear_stack and not cvd_up and not bull) else None),
     }
 
 
@@ -1079,6 +1288,7 @@ def fetch_all_via_coinalyze():
             weekly_bias = compute_weekly_bias(k4h, current_price)
             # Zone di swing con punteggio a stelle (porting dell'indicatore utente)
             gp = compute_golden_pocket(k4h) if SWING_ZONES else None
+            wave = compute_wave(k4h, "BTC" if aid == "BTC" else "OTHER") if WAVE_ON else None
             _c4 = [_kline_val(k, "c") for k in k4h if _kline_val(k, "c") is not None]
             _emas = [compute_ema(_c4, 21), compute_ema(_c4, 50), compute_ema(_c4, 200)] if _c4 else []
             zones = compute_swing_zones(k4h, current_price,
@@ -1108,6 +1318,7 @@ def fetch_all_via_coinalyze():
                 "weeklyBias": weekly_bias,
                 "atr": compute_atr(k4h),
                 "goldenPocket": gp,
+                "wave": wave,
                 "zones": zones[:8] if zones else [],
                 "entryZone": compute_entry_zone(k4h, current_price, vwap_w, zones=zones),
             }
@@ -1280,6 +1491,9 @@ CONF_WEIGHTS = {
     "weekly_bias": 1,  # LEGGERO: weekly open + Monday range (conferma swing, da martedi')
     "zones": 2,    # il trade arriva su una ZONA FORTE (>=2 stelle): livello dove il
                    # prezzo ha gia' reagito piu' volte, non una media calcolata
+    "wave": 3,     # MOMENTUM (indicatore WAVE dell'utente): DSL multi-orizzonte
+                   # + stack EMA 8/12/21 + CVD. Peso alto: e' l'unico fattore
+                   # che misura l'ACCELERAZIONE, non lo stato
     # --- I due sotto NON danno bonus: sono PENALITÀ contrarian agli estremi ---
     "funding": 2,  # PENALITÀ se funding bollente/gelido contro il trade
     "lsr": 1,      # PENALITÀ se L/S retail troppo carico nel verso del trade
@@ -1315,7 +1529,7 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
                                    funding=None, lsr=None, thresholds=None,
                                    vwap_w=None, vwap_m=None, delta=None,
                                    px_change_24h=None, weekly_bias=None, rvol=None,
-                                   zones_list=None):
+                                   zones_list=None, wave=None):
     """Confluenza PESATA: ogni fattore contribuisce con il suo peso se è d'accordo
     con la direzione. La forza dipende dalla frazione di peso a favore (score/total).
     I fattori mancanti vengono esclusi dal totale, così non penalizzano a vuoto."""
@@ -1470,6 +1684,14 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
     if total == 0:
         _, base_strength = compute_action(bias, signal_4h)
         return (direction, base_strength, 0, 0)
+
+    # 7c) WAVE — momentum. Punto pieno se la WAVE e' dalla parte del trade;
+    #     mezzo punto se la confluenza completa (EMA+CVD+WAVE) e' allineata.
+    if wave:
+        total += W["wave"]
+        w_ok = (direction == "LONG" and wave.get("bull")) or (direction == "SHORT" and not wave.get("bull"))
+        if w_ok:
+            score += W["wave"] * (1.0 if wave.get("confluence") == direction else 0.66)
 
     # 8) ZONE DI SWING: il prezzo sta arrivando su un livello a 2-3 stelle?
     #    Supporto sotto per un LONG, resistenza sopra per uno SHORT: e' il posto
@@ -1749,6 +1971,21 @@ def format_transition_message(t, other_active_state=None):
         parts = [f"{'★' * z['stars']} {fmt_price(z['price'])} ({z['count']}x, {z['distPct']:+.1f}%)"
                  for z in strong_lv]
         entry_block += "<b>Livelli forti:</b> " + " · ".join(parts) + "\n"
+    wv = d.get("wave")
+    if wv:
+        frecc = "▲" if wv.get("bull") else "▼"
+        stack = {"BULL": "8>12>21 ▲", "BEAR": "8<12<21 ▼"}.get(wv.get("emaStack"), "intrecciate ↔")
+        cvdtxt = "compratori ▲" if wv.get("cvdUp") else "venditori ▼"
+        entry_block += (f"<b>WAVE:</b> {wv['value']:+.2f} {frecc} signal {wv['signal']:+.2f} · "
+                        f"ADX {wv['adx']:.0f} {'trend' if wv.get('trending') else 'range'}\n"
+                        f"<b>EMA 8/12/21:</b> {stack} · <b>CVD:</b> {cvdtxt}\n")
+        if wv.get("confluence"):
+            entry_block += f"✅ <b>Confluenza WAVE {wv['confluence']}</b> (EMA + CVD + momentum allineati)\n"
+        if wv.get("nearPeak"):
+            entry_block += "⚠️ <b>pre-picco</b>: il momentum sta decelerando, spinta in esaurimento\n"
+        if wv.get("nearTrough"):
+            entry_block += "⚠️ <b>pre-minimo</b>: il ribasso sta decelerando\n"
+
     gpx = d.get("goldenPocket")
     if gpx and d.get("price") and gpx["lo"] <= d["price"] <= gpx["hi"]:
         entry_block += "🟡 <b>prezzo dentro la Golden Pocket</b>\n"
@@ -2062,6 +2299,7 @@ def main():
                 weekly_bias=data.get("weeklyBias"),
                 rvol=data.get("rvol"),
                 zones_list=data.get("zones"),
+                wave=data.get("wave"),
             )
             curr_label = f"{action}_{strength}"
             prev_entry = last_state.get(asset_id, {})
