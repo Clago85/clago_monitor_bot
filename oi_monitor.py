@@ -2462,6 +2462,11 @@ def main():
                     "delta": data.get("delta"),
                     "atr": data.get("atr"),
                     "entryZone": zone,
+                    # pubblicati anche nello state: servono al pannello per
+                    # mostrare le stesse cose che il motore ha gia' valutato
+                    "wave": data.get("wave"),
+                    "zones": data.get("zones"),
+                    "goldenPocket": data.get("goldenPocket"),
                 },
                 "entry": ({"state": est,
                            "zoneSrc": (zone or {}).get("src"),
