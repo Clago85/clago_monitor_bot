@@ -123,6 +123,26 @@ WEEKEND_BLOCK = True
 # settimanale (allargata di 0.25 ATR): li' il rapporto rischio/rendimento e'
 # al massimo. Non blocca il segnale: lo qualifica.
 # ============================================================================
+# ============================================================================
+# ZONE DI SWING (porting del Pine "Swing Levels Pro" dell'utente)
+# Pivot 8/8 sul 4h -> raggruppati in ZONE entro lo 0.45% -> punteggio a stelle:
+#   base = numero di tocchi
+#   +1 volume forte (>= 66% del massimo)   +1 vicino all'apertura settimanale
+#   +1 dentro la Golden Pocket             +1 una media (21/50/200) passa di li'
+#   +1 vicino al POC
+#   >=5 punti = 3 stelle, >=3 = 2 stelle, altrimenti 1
+# L'idea che il bot non aveva: non conta DOVE sta il prezzo rispetto a un
+# livello, conta QUANTI riferimenti si accatastano allo stesso prezzo.
+# ============================================================================
+SWING_ZONES = True
+PIVOT_LEN = 8
+ZONE_TOL_PCT = 0.45
+VOL_BOOST = 0.66
+MAX_ZONES = 30
+GP_LOOKBACK = 120
+FIB_A = 0.618
+FIB_B = 0.705
+
 ENTRY_ZONE = True
 EMA_ZONE_4H = 21
 ATR_PERIOD = 14
@@ -548,6 +568,120 @@ def compute_poc_swing(klines, current_price, lookback_bars=126):
     }
 
 
+def compute_golden_pocket(klines, lookback=GP_LOOKBACK):
+    """Golden Pocket sulla gamba dominante: cerca massimo e minimo delle ultime
+    `lookback` barre; se il massimo e' piu' recente la gamba e' rialzista e i
+    ritracciamenti si misurano dall'alto, altrimenti dal basso."""
+    if not klines or len(klines) < 20:
+        return None
+    seg = klines[-lookback:]
+    highs = [_kline_val(k, "h") for k in seg if _kline_val(k, "h") is not None]
+    lows = [_kline_val(k, "l") for k in seg if _kline_val(k, "l") is not None]
+    if not highs or not lows:
+        return None
+    hh, ll = max(highs), min(lows)
+    rng = hh - ll
+    if rng <= 0:
+        return None
+    i_hh = len(highs) - 1 - highs[::-1].index(hh)
+    i_ll = len(lows) - 1 - lows[::-1].index(ll)
+    up_leg = i_hh >= i_ll                      # il massimo e' piu' recente
+    a = hh - rng * FIB_A if up_leg else ll + rng * FIB_A
+    b = hh - rng * FIB_B if up_leg else ll + rng * FIB_B
+    return {"lo": min(a, b), "hi": max(a, b), "upLeg": up_leg, "legHigh": hh, "legLow": ll}
+
+
+def _pivots(klines, length=PIVOT_LEN):
+    """Pivot high/low stile ta.pivothigh/pivotlow: estremo con `length` barre
+    piu' basse (o piu' alte) a destra e a sinistra."""
+    out = []
+    n = len(klines)
+    for i in range(length, n - length):
+        h = _kline_val(klines[i], "h")
+        l = _kline_val(klines[i], "l")
+        v = _kline_val(klines[i], "v") or 0.0
+        if h is None or l is None:
+            continue
+        win = klines[i - length:i + length + 1]
+        hs = [_kline_val(k, "h") for k in win if _kline_val(k, "h") is not None]
+        ls = [_kline_val(k, "l") for k in win if _kline_val(k, "l") is not None]
+        if hs and h >= max(hs):
+            out.append({"price": h, "isHigh": True, "vol": v, "i": i})
+        if ls and l <= min(ls):
+            out.append({"price": l, "isHigh": False, "vol": v, "i": i})
+    return out
+
+
+def compute_swing_zones(klines4h, current_price, weekly_open=None, poc=None,
+                        emas=None, golden_pocket=None):
+    """Zone di swing con punteggio a stelle (porting del Pine dell'utente).
+    Ritorna la lista ordinata per distanza dal prezzo."""
+    if not klines4h or len(klines4h) < PIVOT_LEN * 2 + 5 or not current_price:
+        return []
+    zones = []
+    for p in _pivots(klines4h):
+        price, tol = p["price"], p["price"] * ZONE_TOL_PCT / 100.0
+        best, idx = tol, -1
+        for j, z in enumerate(zones):
+            d = abs(z["price"] - price)
+            if d <= best:
+                best, idx = d, j
+        if idx >= 0:
+            z = zones[idx]
+            z["price"] = (z["price"] * z["count"] + price) / (z["count"] + 1)
+            z["count"] += 1
+            z["vol"] += p["vol"]
+        else:
+            zones.append({"price": price, "count": 1, "vol": p["vol"], "isHigh": p["isHigh"]})
+        if len(zones) > MAX_ZONES:
+            zones.pop(0)
+    if not zones:
+        return []
+    max_vol = max(z["vol"] for z in zones) or 1.0
+    poc_price = poc.get("poc") if isinstance(poc, dict) else None
+    out = []
+    for z in zones:
+        tol_w = z["price"] * ZONE_TOL_PCT / 100.0 * 1.5
+        score = z["count"]
+        if z["vol"] >= max_vol * VOL_BOOST:
+            score += 1
+        if weekly_open and abs(z["price"] - weekly_open) <= tol_w:
+            score += 1
+        if golden_pocket and golden_pocket["lo"] <= z["price"] <= golden_pocket["hi"]:
+            score += 1
+        if emas and any(e and abs(z["price"] - e) <= tol_w for e in emas):
+            score += 1
+        if poc_price and abs(z["price"] - poc_price) <= tol_w:
+            score += 1
+        stars = 3 if score >= 5 else 2 if score >= 3 else 1
+        out.append({"price": round(z["price"], 8), "count": z["count"], "stars": stars,
+                    "isHigh": z["isHigh"],
+                    "distPct": round((z["price"] - current_price) / current_price * 100, 2)})
+    out.sort(key=lambda x: abs(x["distPct"]))
+    return out
+
+
+def nearest_zone(zones, direction, current_price, max_atr=None, atr=None, min_stars=2):
+    """Zona forte piu' vicina utile al trade: supporto sotto per un LONG,
+    resistenza sopra per uno SHORT."""
+    if not zones or direction not in ("LONG", "SHORT"):
+        return None
+    cands = []
+    for z in zones:
+        if z["stars"] < min_stars:
+            continue
+        if direction == "LONG" and z["price"] > current_price:
+            continue
+        if direction == "SHORT" and z["price"] < current_price:
+            continue
+        if atr and max_atr and abs(z["price"] - current_price) > max_atr * atr:
+            continue
+        cands.append(z)
+    if not cands:
+        return None
+    return sorted(cands, key=lambda x: abs(x["distPct"]))[0]
+
+
 def compute_atr(klines, period=ATR_PERIOD):
     """ATR classico sulle candele 4h: misura di volatilita' per dimensionare
     zona d'ingresso, stop e target in modo proporzionale alla coin."""
@@ -566,7 +700,8 @@ def compute_atr(klines, period=ATR_PERIOD):
     return sum(trs[-period:]) / period
 
 
-def compute_entry_zone(klines4h, current_price, vwap_w, direction_hint=None):
+def compute_entry_zone(klines4h, current_price, vwap_w, direction_hint=None,
+                       zones=None):
     """Zona di valore dove il rapporto rischio/rendimento e' migliore.
     Area tra EMA21(4h) e VWAP settimanale, allargata di 0.25 ATR. Se i due
     riferimenti distano oltre 1.5 ATR (coin molto estesa) vale solo la EMA21,
@@ -591,12 +726,22 @@ def compute_entry_zone(klines4h, current_price, vwap_w, direction_hint=None):
     else:
         lo = ema21 - 0.5 * atr
         hi = ema21 + 0.5 * atr
+    src = "EMA21/VWAP"
+    # Se esiste una ZONA FORTE (>=2 stelle) nella direzione del trade entro 2 ATR,
+    # quella batte la zona statistica: e' un livello dove il prezzo ha gia'
+    # reagito piu' volte, non una media calcolata.
+    if zones and direction_hint:
+        z = nearest_zone(zones, direction_hint, current_price, max_atr=2.0, atr=atr, min_stars=2)
+        if z:
+            lo = z["price"] - 0.35 * atr
+            hi = z["price"] + 0.35 * atr
+            src = "zona " + "*" * z["stars"] + f" ({z['count']}x)"
     dist = 0.0
     if current_price > hi:
         dist = (current_price - hi) / atr
     elif current_price < lo:
         dist = (current_price - lo) / atr
-    return {"lo": lo, "hi": hi, "ema21": ema21, "atr": atr,
+    return {"lo": lo, "hi": hi, "ema21": ema21, "atr": atr, "src": src,
             "inZone": lo <= current_price <= hi,
             "distATR": round(dist, 2)}
 
@@ -932,6 +1077,13 @@ def fetch_all_via_coinalyze():
             delta = compute_delta(k4h, bars=3)
             # Bias settimanale: weekly open + Monday range (conferma swing, da martedì)
             weekly_bias = compute_weekly_bias(k4h, current_price)
+            # Zone di swing con punteggio a stelle (porting dell'indicatore utente)
+            gp = compute_golden_pocket(k4h) if SWING_ZONES else None
+            _c4 = [_kline_val(k, "c") for k in k4h if _kline_val(k, "c") is not None]
+            _emas = [compute_ema(_c4, 21), compute_ema(_c4, 50), compute_ema(_c4, 200)] if _c4 else []
+            zones = compute_swing_zones(k4h, current_price,
+                                        weekly_open=(weekly_bias or {}).get("weeklyOpen"),
+                                        poc=poc, emas=_emas, golden_pocket=gp) if SWING_ZONES else []
             result[aid] = {
                 "source": "Coinalyze",
                 "source_symbol": sym,
@@ -955,7 +1107,9 @@ def fetch_all_via_coinalyze():
                 "delta": delta,
                 "weeklyBias": weekly_bias,
                 "atr": compute_atr(k4h),
-                "entryZone": compute_entry_zone(k4h, current_price, vwap_w),
+                "goldenPocket": gp,
+                "zones": zones[:8] if zones else [],
+                "entryZone": compute_entry_zone(k4h, current_price, vwap_w, zones=zones),
             }
         except Exception as e:
             result[aid] = {"error": f"parse error: {e}"}
@@ -1124,6 +1278,8 @@ CONF_WEIGHTS = {
     "fvg": 1,      # gap di prezzo a favore
     "vwap_m": 1,   # prezzo vs VWAP mensile (filtro trend macro)
     "weekly_bias": 1,  # LEGGERO: weekly open + Monday range (conferma swing, da martedi')
+    "zones": 2,    # il trade arriva su una ZONA FORTE (>=2 stelle): livello dove il
+                   # prezzo ha gia' reagito piu' volte, non una media calcolata
     # --- I due sotto NON danno bonus: sono PENALITÀ contrarian agli estremi ---
     "funding": 2,  # PENALITÀ se funding bollente/gelido contro il trade
     "lsr": 1,      # PENALITÀ se L/S retail troppo carico nel verso del trade
@@ -1158,7 +1314,8 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
                                    current_price, oi_change_4h=None,
                                    funding=None, lsr=None, thresholds=None,
                                    vwap_w=None, vwap_m=None, delta=None,
-                                   px_change_24h=None, weekly_bias=None, rvol=None):
+                                   px_change_24h=None, weekly_bias=None, rvol=None,
+                                   zones_list=None):
     """Confluenza PESATA: ogni fattore contribuisce con il suo peso se è d'accordo
     con la direzione. La forza dipende dalla frazione di peso a favore (score/total).
     I fattori mancanti vengono esclusi dal totale, così non penalizzano a vuoto."""
@@ -1313,6 +1470,20 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
     if total == 0:
         _, base_strength = compute_action(bias, signal_4h)
         return (direction, base_strength, 0, 0)
+
+    # 8) ZONE DI SWING: il prezzo sta arrivando su un livello a 2-3 stelle?
+    #    Supporto sotto per un LONG, resistenza sopra per uno SHORT: e' il posto
+    #    dove il movimento ha piu' probabilita' di reagire.
+    if zones_list:
+        total += W["zones"]
+        _atr_z = None
+        for _z in zones_list:
+            if _z.get("stars", 0) >= 2:
+                _atr_z = True
+                break
+        near = nearest_zone(zones_list, direction, current_price, min_stars=2)
+        if near and abs(near["distPct"]) <= 1.5:
+            score += W["zones"]
 
     frac = score / total
     # Soglie reattive: abbassate per anticipare il passaggio a 'forte'.
@@ -1563,13 +1734,25 @@ def format_transition_message(t, other_active_state=None):
                 "INSEGUIMENTO": f"prezzo oltre la zona di {abs(z.get('distATR') or 0)} ATR: stai inseguendo",
                 "SOTTO ZONA": "prezzo non ancora in zona: attendi il rientro",
                 "SOPRA ZONA": "prezzo non ancora in zona: attendi il rientro"}.get(st, "")
+        srcz = z.get("src") or "EMA21/VWAP"
         entry_block = (f"\n<b>— Timing —</b>\n"
                        f"{icona} <b>{st}</b> · {nota}\n"
-                       f"<b>Zona:</b> {fmt_price(z['lo'])} – {fmt_price(z['hi'])}\n")
+                       f"<b>Zona:</b> {fmt_price(z['lo'])} – {fmt_price(z['hi'])} <i>({srcz})</i>\n")
         if lv:
             entry_block += (f"<b>SL:</b> {fmt_price(lv['sl'])} ({lv['riskPct']}%) · "
                             f"<b>TP1</b> {fmt_price(lv['tp1'])} · <b>TP2</b> {fmt_price(lv['tp2'])}\n"
                             f"<b>Leva max:</b> {lv['maxLev']}x\n")
+    # livelli forti piu' vicini (zone a 2-3 stelle)
+    zl = d.get("zones") or []
+    strong_lv = [z for z in zl if z.get("stars", 0) >= 2][:3]
+    if strong_lv:
+        parts = [f"{'★' * z['stars']} {fmt_price(z['price'])} ({z['count']}x, {z['distPct']:+.1f}%)"
+                 for z in strong_lv]
+        entry_block += "<b>Livelli forti:</b> " + " · ".join(parts) + "\n"
+    gpx = d.get("goldenPocket")
+    if gpx and d.get("price") and gpx["lo"] <= d["price"] <= gpx["hi"]:
+        entry_block += "🟡 <b>prezzo dentro la Golden Pocket</b>\n"
+
     lsr_block = ""
     lsr_value = d.get("lsr")
     if lsr_value is not None:
@@ -1878,6 +2061,7 @@ def main():
                 px_change_24h=data.get("priceChange24h"),
                 weekly_bias=data.get("weeklyBias"),
                 rvol=data.get("rvol"),
+                zones_list=data.get("zones"),
             )
             curr_label = f"{action}_{strength}"
             prev_entry = last_state.get(asset_id, {})
@@ -1964,6 +2148,19 @@ def main():
                 })
             # TIMING D'INGRESSO: dove si trova il prezzo rispetto alla zona di valore
             zone = data.get("entryZone")
+            # se esiste una zona forte nella direzione del trade, quella diventa
+            # l'area d'ingresso: batte la zona statistica EMA21/VWAP
+            if ENTRY_ZONE and zone and zone.get("atr") and action in ("LONG", "SHORT"):
+                _z = nearest_zone(data.get("zones"), action, data.get("price"),
+                                  max_atr=2.0, atr=zone["atr"], min_stars=2)
+                if _z:
+                    _a = zone["atr"]
+                    zone = dict(zone, lo=_z["price"] - 0.35 * _a, hi=_z["price"] + 0.35 * _a,
+                                src=f"zona {'★' * _z['stars']} ({_z['count']}x)")
+                    _p = data.get("price")
+                    zone["inZone"] = zone["lo"] <= _p <= zone["hi"]
+                    zone["distATR"] = round((_p - zone["hi"]) / _a if _p > zone["hi"]
+                                            else ((_p - zone["lo"]) / _a if _p < zone["lo"] else 0.0), 2)
             est = entry_state(zone, action, data.get("price")) if ENTRY_ZONE else None
             lev = entry_levels(zone, action, data.get("price")) if (ENTRY_ZONE and est) else None
             prev_entry_state = (prev_entry.get("entry") or {}).get("state")
