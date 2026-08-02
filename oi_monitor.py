@@ -104,6 +104,29 @@ EMA_SLOW_4H = 50
 # definizione di trend, che resta 12/50). Serve a capire prima quando un movimento
 # esteso sta invertendo, senza aspettare che la 12 incroci la 50.
 EMA_ULTRA_FAST_4H = 8
+
+# ============================================================================
+# FINESTRA OPERATIVA — misurata sui 500 trade storici:
+#   aperti venerdi 22:00 -> domenica 12:00 : 90 trade, -28.9 punti, PF 0.63
+#   aperti fuori da quella finestra        : 410 trade, -40.1 punti, PF 0.91
+# Il 18% delle operazioni produce il 42% delle perdite: liquidita' sottile,
+# book vuoti, sweep facili. Blocca SOLO le nuove aperture: le uscite restano
+# sempre libere, in qualsiasi momento.
+# ============================================================================
+WEEKEND_BLOCK = True
+
+# ============================================================================
+# TIMING D'INGRESSO — il buco piu' grave del bot: l'escursione favorevole
+# mediana dei suoi trade e' +0.36%, cioe' meta' delle operazioni non va MAI in
+# guadagno, perche' entra quando vede il flusso e non quando il prezzo e' in
+# una zona che ha senso. La zona di valore e' l'area tra EMA21 4h e VWAP
+# settimanale (allargata di 0.25 ATR): li' il rapporto rischio/rendimento e'
+# al massimo. Non blocca il segnale: lo qualifica.
+# ============================================================================
+ENTRY_ZONE = True
+EMA_ZONE_4H = 21
+ATR_PERIOD = 14
+
 EMA_MACRO_1D = 200
 
 # === SISTEMA A TIER: ogni asset appartiene a una categoria con soglie diverse ===
@@ -525,6 +548,104 @@ def compute_poc_swing(klines, current_price, lookback_bars=126):
     }
 
 
+def compute_atr(klines, period=ATR_PERIOD):
+    """ATR classico sulle candele 4h: misura di volatilita' per dimensionare
+    zona d'ingresso, stop e target in modo proporzionale alla coin."""
+    if not klines or len(klines) < period + 1:
+        return None
+    trs = []
+    for i in range(1, len(klines)):
+        h = _kline_val(klines[i], "h")
+        l = _kline_val(klines[i], "l")
+        pc = _kline_val(klines[i - 1], "c")
+        if h is None or l is None or pc is None:
+            continue
+        trs.append(max(h - l, abs(h - pc), abs(l - pc)))
+    if len(trs) < period:
+        return None
+    return sum(trs[-period:]) / period
+
+
+def compute_entry_zone(klines4h, current_price, vwap_w, direction_hint=None):
+    """Zona di valore dove il rapporto rischio/rendimento e' migliore.
+    Area tra EMA21(4h) e VWAP settimanale, allargata di 0.25 ATR. Se i due
+    riferimenti distano oltre 1.5 ATR (coin molto estesa) vale solo la EMA21,
+    altrimenti la zona diventa larghissima e inutile.
+    Ritorna anche stop e target proporzionali all'ATR."""
+    if not klines4h or not current_price:
+        return None
+    closes = [_kline_val(k, "c") for k in klines4h]
+    closes = [c for c in closes if c is not None]
+    ema21 = compute_ema(closes, EMA_ZONE_4H)
+    atr = compute_atr(klines4h)
+    if not ema21 or not atr:
+        return None
+    vw = None
+    if isinstance(vwap_w, dict):
+        vw = vwap_w.get("vwap")
+    elif isinstance(vwap_w, (int, float)):
+        vw = vwap_w
+    if vw and abs(ema21 - vw) <= 1.5 * atr:
+        lo = min(ema21, vw) - 0.25 * atr
+        hi = max(ema21, vw) + 0.25 * atr
+    else:
+        lo = ema21 - 0.5 * atr
+        hi = ema21 + 0.5 * atr
+    dist = 0.0
+    if current_price > hi:
+        dist = (current_price - hi) / atr
+    elif current_price < lo:
+        dist = (current_price - lo) / atr
+    return {"lo": lo, "hi": hi, "ema21": ema21, "atr": atr,
+            "inZone": lo <= current_price <= hi,
+            "distATR": round(dist, 2)}
+
+
+def entry_state(zone, direction, current_price):
+    """Stato operativo del segnale rispetto alla zona di valore.
+    NON invalida mai il segnale: dice solo se e' il momento giusto."""
+    if not zone or not direction or direction not in ("LONG", "SHORT"):
+        return None
+    if zone["inZone"]:
+        return "PRONTO"
+    if direction == "LONG":
+        return "INSEGUIMENTO" if current_price > zone["hi"] else "SOTTO ZONA"
+    return "INSEGUIMENTO" if current_price < zone["lo"] else "SOPRA ZONA"
+
+
+def entry_levels(zone, direction, current_price):
+    """Stop e target proporzionali alla volatilita' (ATR 4h)."""
+    if not zone or direction not in ("LONG", "SHORT") or not current_price:
+        return None
+    atr = zone["atr"]
+    sl = current_price - 1.5 * atr if direction == "LONG" else current_price + 1.5 * atr
+    risk = abs(current_price - sl)
+    if not risk:
+        return None
+    tp1 = current_price + (1.5 * risk if direction == "LONG" else -1.5 * risk)
+    tp2 = current_price + (2.5 * risk if direction == "LONG" else -2.5 * risk)
+    dist_pct = risk / current_price * 100
+    lev = max(1, min(20, int(70 / dist_pct))) if dist_pct else 1
+    return {"sl": sl, "tp1": tp1, "tp2": tp2,
+            "riskPct": round(dist_pct, 2), "maxLev": lev}
+
+
+def in_weekend_block(ts=None):
+    """True dentro la finestra morta: venerdi 22:00 -> domenica 12:00 (ora IT)."""
+    if ITALY_TZ is not None:
+        d = datetime.fromtimestamp(ts or time.time(), ITALY_TZ)
+    else:
+        d = datetime.fromtimestamp(ts or time.time())
+    wd, hh = d.weekday(), d.hour   # lunedi=0 ... domenica=6
+    if wd == 4 and hh >= 22:
+        return True
+    if wd == 5:
+        return True
+    if wd == 6 and hh < 12:
+        return True
+    return False
+
+
 def compute_vwap(klines, bars):
     """VWAP (Volume Weighted Average Price) sulle ultime `bars` candele.
     typical price = (H+L+C)/3, pesato per volume. Restituisce dict con valore e
@@ -833,6 +954,8 @@ def fetch_all_via_coinalyze():
                 "vwapM": vwap_m,
                 "delta": delta,
                 "weeklyBias": weekly_bias,
+                "atr": compute_atr(k4h),
+                "entryZone": compute_entry_zone(k4h, current_price, vwap_w),
             }
         except Exception as e:
             result[aid] = {"error": f"parse error: {e}"}
@@ -1428,6 +1551,25 @@ def format_transition_message(t, other_active_state=None):
     tv_exchange = "BYBIT" if sym.endswith(".6") else "BINANCE"
     base_sym = _binance_symbol(sym) or asset
     tv_link = f"https://www.tradingview.com/chart/?symbol={tv_exchange}:{base_sym}.P"
+    # --- blocco TIMING: zona di valore, stop e target ---
+    entry_block = ""
+    z = d.get("entryZone")
+    dir_now = curr_a if curr_a in ("LONG", "SHORT") else None
+    if z and dir_now:
+        st = entry_state(z, dir_now, d.get("price"))
+        lv = entry_levels(z, dir_now, d.get("price"))
+        icona = {"PRONTO": "🎯", "INSEGUIMENTO": "⚠️", "SOTTO ZONA": "⏳", "SOPRA ZONA": "⏳"}.get(st, "")
+        nota = {"PRONTO": "prezzo in zona di valore: qui il rischio/rendimento e' al massimo",
+                "INSEGUIMENTO": f"prezzo oltre la zona di {abs(z.get('distATR') or 0)} ATR: stai inseguendo",
+                "SOTTO ZONA": "prezzo non ancora in zona: attendi il rientro",
+                "SOPRA ZONA": "prezzo non ancora in zona: attendi il rientro"}.get(st, "")
+        entry_block = (f"\n<b>— Timing —</b>\n"
+                       f"{icona} <b>{st}</b> · {nota}\n"
+                       f"<b>Zona:</b> {fmt_price(z['lo'])} – {fmt_price(z['hi'])}\n")
+        if lv:
+            entry_block += (f"<b>SL:</b> {fmt_price(lv['sl'])} ({lv['riskPct']}%) · "
+                            f"<b>TP1</b> {fmt_price(lv['tp1'])} · <b>TP2</b> {fmt_price(lv['tp2'])}\n"
+                            f"<b>Leva max:</b> {lv['maxLev']}x\n")
     lsr_block = ""
     lsr_value = d.get("lsr")
     if lsr_value is not None:
@@ -1483,7 +1625,9 @@ def format_transition_message(t, other_active_state=None):
         total = confluence.get("total", 0)
         if total > 0:
             tech_block += f"<b>📊 Confluenza:</b> {score}/{total} indicatori d'accordo\n"
+    testa = "🎯 <b>PRONTO — prezzo in zona</b>\n" if prev == "READY" else ""
     msg = (
+        testa +
         f"{emoji} <b>{curr_a} {strength_text}</b> · <b>{asset}</b>{exhaustion_tag}\n"
         f"🕐 <b>Rilevato:</b> {now_italy_str()}\n\n"
         f"<b>Prezzo:</b> {fmt_price(d['price'])}\n"
@@ -1495,7 +1639,8 @@ def format_transition_message(t, other_active_state=None):
         f"<b>Funding:</b> {fmt_pct(d.get('fundingRate'), 4)} (8h)\n"
         f"{lsr_block}"
         f"<b>Bias 24h:</b> {t['bias']}\n"
-        f"<b>Signal 4h:</b> {t['signal']}\n\n"
+        f"<b>Signal 4h:</b> {t['signal']}\n"
+        f"{entry_block}\n"
         f"<b>━ Indicatori tecnici ━</b>\n"
         f"{tech_block}"
         f"\n<b>Transizione:</b> {prev} → {curr}\n"
@@ -1748,6 +1893,14 @@ def main():
                     action, strength = "NEUTRAL", "weak"
                     curr_label = "NEUTRAL_weak"
                     print(f"  [ANTI-FLIP] {asset_id}: inversione diretta bloccata, passo da NEUTRAL", flush=True)
+            # FINESTRA OPERATIVA: nel weekend morto niente NUOVE aperture
+            # (le uscite e la gestione restano sempre attive).
+            if WEEKEND_BLOCK and in_weekend_block():
+                prev_dir_w = prev_label.split("_")[0] if (prev_label and "_" in prev_label) else "NEUTRAL"
+                if action in ("LONG", "SHORT") and action != prev_dir_w:
+                    action, strength, curr_label = "NEUTRAL", "weak", "NEUTRAL_weak"
+                    print(f"  [WEEKEND] {asset_id}: apertura bloccata (ven 22 -> dom 12)", flush=True)
+
             # FILTRO AMPIEZZA: non aprire contro un mercato che si muove in blocco.
             # Agisce solo se non c'e' gia' una posizione aperta nella stessa direzione
             # (cioe' blocca le nuove entrate, non la gestione di quelle in corso).
@@ -1809,6 +1962,16 @@ def main():
                     "confluence_score": conf_score,
                     "confluence_total": conf_total,
                 })
+            # TIMING D'INGRESSO: dove si trova il prezzo rispetto alla zona di valore
+            zone = data.get("entryZone")
+            est = entry_state(zone, action, data.get("price")) if ENTRY_ZONE else None
+            lev = entry_levels(zone, action, data.get("price")) if (ENTRY_ZONE and est) else None
+            prev_entry_state = (prev_entry.get("entry") or {}).get("state")
+            became_ready = (est == "PRONTO" and prev_entry_state != "PRONTO"
+                            and action in ("LONG", "SHORT") and _is_operative(strength))
+            if became_ready:
+                print(f"  [PRONTO] {asset_id} {action}: prezzo in zona di valore", flush=True)
+
             new_state[asset_id] = {
                 "label": curr_label,
                 "bias": bias,
@@ -1833,8 +1996,30 @@ def main():
                     "vwapW": data.get("vwapW"),
                     "vwapM": data.get("vwapM"),
                     "delta": data.get("delta"),
+                    "atr": data.get("atr"),
+                    "entryZone": zone,
                 },
+                "entry": ({"state": est,
+                           "zoneLo": zone.get("lo") if zone else None,
+                           "zoneHi": zone.get("hi") if zone else None,
+                           "distATR": zone.get("distATR") if zone else None,
+                           "sl": lev.get("sl") if lev else None,
+                           "tp1": lev.get("tp1") if lev else None,
+                           "tp2": lev.get("tp2") if lev else None,
+                           "riskPct": lev.get("riskPct") if lev else None,
+                           "maxLev": lev.get("maxLev") if lev else None} if est else None),
             }
+            # ALERT "PRONTO": il segnale operativo entra in zona di valore.
+            # E' l'avviso che prima non esisteva: non "c'e' un segnale", ma
+            # "adesso il prezzo e' dove conviene entrare".
+            if became_ready and not is_transition:
+                transitions.append({
+                    "ts": int(time.time()), "asset": asset_id,
+                    "from": "READY", "to": curr_label,
+                    "bias": bias, "signal": signal, "data": data,
+                    "confluence": {"score": conf_score, "total": conf_total},
+                })
+                transition_logged = True
             flag = " *" if transition_logged else ""
             print(f"  [OK] {asset_id:7s} {curr_label:18s} (era {prev_label or 'nuovo'}){flag}", flush=True)
         except Exception as e:
