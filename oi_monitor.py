@@ -2173,6 +2173,15 @@ def update_performance(new_state, last_state):
         perf = {"open": [], "closed": []}
     open_trades = perf.get("open", [])
     closed = perf.get("closed", [])
+    # ANTI-CHURN: memoria delle chiusure per rottura di struttura avvenute
+    # mentre l'etichetta era ANCORA nella stessa direzione. Senza questo, il
+    # tracker chiudeva e riapriva la stessa posizione nello stesso run, all
+    # infinito: POL risultava aperta/chiusa 8 volte in 3 giorni pur essendo
+    # sempre lo stesso short. Finche' l'etichetta non passa da NEUTRAL (o non
+    # si gira), quella coin non puo' riaprire nella direzione bloccata.
+    cooldown = perf.get("cooldown", {})
+    if not isinstance(cooldown, dict):
+        cooldown = {}
     now = int(time.time())
 
     def cur_dir(aid):
@@ -2247,12 +2256,23 @@ def update_performance(new_state, last_state):
             tr["outcome"] = "win" if tr.get("pnl_pct", 0) > 0 else "loss"
             tr["closed_to"] = d_now
             tr["close_reason"] = "flip" if flipped else "struttura"
+            # se chiudo per struttura ma il segnale e' ancora nella stessa
+            # direzione, blocco la riapertura finche' l'etichetta non cambia
+            if not flipped and d_now == direction:
+                cooldown[aid] = {"dir": direction, "ts": now}
             closed.append(tr)
 
     # apri nuovi trade per asset appena entrati in LONG/SHORT (e non già tracciati)
     for aid, s in new_state.items():
         lab = s.get("label", "")
         direction = lab.split("_")[0] if "_" in lab else "NEUTRAL"
+        # il blocco anti-churn cade appena l'etichetta cambia direzione o va a NEUTRAL
+        cd = cooldown.get(aid)
+        if cd and cd.get("dir") != direction:
+            cooldown.pop(aid, None)
+            cd = None
+        if cd:
+            continue
         if direction in ("LONG", "SHORT") and aid not in open_ids:
             p0 = s.get("data", {}).get("price")
             if p0:
@@ -2281,7 +2301,11 @@ def update_performance(new_state, last_state):
                 open_ids.add(aid)
 
     closed = closed[-500:]  # cap
-    save_json(PERFORMANCE_FILE, {"open": still_open, "closed": closed})
+    # pulizia cooldown: via le coin che non sono piu' nello state
+    for k in list(cooldown.keys()):
+        if k not in new_state:
+            cooldown.pop(k, None)
+    save_json(PERFORMANCE_FILE, {"open": still_open, "closed": closed, "cooldown": cooldown})
 
 
 def main():
