@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
-"""Invia gli alert salvati in pending_alerts.json a Telegram."""
+"""Invia gli alert salvati in pending_alerts.json a Telegram.
+
+RETE DI SICUREZZA (03/08/2026): se Telegram rifiuta il messaggio per un errore
+di formattazione HTML (codice 400, "can't parse entities"), il messaggio NON
+viene perso: si ritenta in testo semplice, togliendo i tag. Prima bastava un
+carattere "<" dentro il testo — per esempio la scritta "8<12<21" dello stack
+EMA — per far rifiutare l'intero alert e restare senza avvisi senza accorgersene,
+perche' il workflow risultava comunque "success".
+"""
 
 import os
 import json
+import re
 import time
 import requests
 
@@ -11,22 +20,39 @@ TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "").strip()
 TG_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
 
+def _strip_html(text):
+    """Toglie i tag e riporta le entita' di base: usato solo come fallback."""
+    txt = re.sub(r"<a href=\"([^\"]*)\">([^<]*)</a>", r"\2 (\1)", text)
+    txt = re.sub(r"<[^>]+>", "", txt)
+    return (txt.replace("&lt;", "<").replace("&gt;", ">")
+               .replace("&amp;", "&").replace("&quot;", '"'))
+
+
+def _post(payload):
+    url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
+    return requests.post(url, json=payload, timeout=20)
+
+
 def send_telegram(text):
     if not TG_TOKEN or not TG_CHAT:
         print("[WARN] Telegram non configurato", flush=True)
         return False
-    url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
+    base = {"chat_id": TG_CHAT, "disable_web_page_preview": True}
     try:
-        r = requests.post(url, json={
-            "chat_id": TG_CHAT,
-            "text": text,
-            "parse_mode": "HTML",
-            "disable_web_page_preview": True,
-        }, timeout=20)
-        if not r.ok:
-            print(f"[ERR] Telegram {r.status_code}: {r.text[:200]}", flush=True)
+        r = _post({**base, "text": text, "parse_mode": "HTML"})
+        if r.ok:
+            return True
+        # 400 = quasi sempre HTML malformato: ritento senza formattazione
+        if r.status_code == 400:
+            print(f"[WARN] HTML rifiutato ({r.text[:120]}), ritento in testo semplice", flush=True)
+            r2 = _post({**base, "text": _strip_html(text)})
+            if r2.ok:
+                print("[INFO] inviato in testo semplice", flush=True)
+                return True
+            print(f"[ERR] anche il testo semplice fallisce: {r2.status_code} {r2.text[:150]}", flush=True)
             return False
-        return True
+        print(f"[ERR] Telegram {r.status_code}: {r.text[:200]}", flush=True)
+        return False
     except Exception as e:
         print(f"[ERR] Telegram exception: {e}", flush=True)
         return False
@@ -56,6 +82,8 @@ def main():
             sent += 1
         time.sleep(0.6)
     print(f"[INFO] Inviati {sent}/{len(alerts)} alert")
+    if sent < len(alerts):
+        print(f"[WARN] {len(alerts) - sent} alert NON consegnati", flush=True)
     try:
         os.remove(PENDING_PATH)
         print("[INFO] pending_alerts.json eliminato")
