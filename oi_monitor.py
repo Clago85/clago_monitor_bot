@@ -1974,7 +1974,9 @@ def format_transition_message(t, other_active_state=None):
     wv = d.get("wave")
     if wv:
         frecc = "▲" if wv.get("bull") else "▼"
-        stack = {"BULL": "8>12>21 ▲", "BEAR": "8<12<21 ▼"}.get(wv.get("emaStack"), "intrecciate ↔")
+        # ATTENZIONE: mai < o > nel testo, Telegram li interpreta come tag HTML
+        # e rifiuta l'intero messaggio (errore "Unsupported start tag").
+        stack = {"BULL": "8 › 12 › 21 ▲", "BEAR": "8 ‹ 12 ‹ 21 ▼"}.get(wv.get("emaStack"), "intrecciate ↔")
         cvdtxt = "compratori ▲" if wv.get("cvdUp") else "venditori ▼"
         entry_block += (f"<b>WAVE:</b> {wv['value']:+.2f} {frecc} signal {wv['signal']:+.2f} · "
                         f"ADX {wv['adx']:.0f} {'trend' if wv.get('trending') else 'range'}\n"
