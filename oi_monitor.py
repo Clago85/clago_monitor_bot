@@ -1817,6 +1817,11 @@ def compute_action_with_confluence(bias, signal_4h, trend, obv, fvg, poc,
 #   - flip diretto LONG<->SHORT: 27 trade, 0 vinti, media -3.07% -> vietato
 # ============================================================================
 NOTIFY_STRONG_ONLY = True   # alert Telegram solo sui segnali strong/full
+# ...MA con una via alternativa: un segnale "moderate" con una confluenza alta
+# passa comunque. Nato dal caso ADA (03/08): LONG moderate al 50% ha fatto +3.1%
+# e non ha avvisato nessuno, mentre ALGO strong al 77.3% ha fatto +7.1%.
+# L'etichetta e' una soglia grossolana: il numero continuo e' piu' onesto.
+NOTIFY_MIN_CONF = 60.0      # % di confluenza che rende notificabile anche un moderate
 NOTIFY_EXITS = True         # avvisa anche quando una posizione strong si chiude
 ANTI_FLIP = True            # mai inversione diretta: passa da NEUTRAL almeno un run
 
@@ -1864,26 +1869,34 @@ def compute_market_breadth(all_data):
 _STRENGTHS = {"weak": 0, "moderate": 1, "strong": 2, "full": 3}
 
 
-def _is_operative(strength):
-    """Un segnale genera alert solo se abbastanza forte (vedi filtri sopra)."""
-    return (not NOTIFY_STRONG_ONLY) or strength in ("strong", "full")
+def _is_operative(strength, conf_pct=None):
+    """Un segnale genera alert se e' strong/full OPPURE se la sua confluenza
+    supera NOTIFY_MIN_CONF: cosi' un moderate molto convincente non resta muto."""
+    if not NOTIFY_STRONG_ONLY:
+        return True
+    if strength in ("strong", "full"):
+        return True
+    return conf_pct is not None and conf_pct >= NOTIFY_MIN_CONF
 
 
-def should_notify(prev_label, curr_label):
+def should_notify(prev_label, curr_label, conf_pct=None, prev_conf_pct=None):
+    """conf_pct = confluenza attuale in %, prev_conf_pct = quella precedente.
+    Servono a far passare i moderate convincenti (>= NOTIFY_MIN_CONF)."""
     if prev_label == curr_label:
         return False
     prev_a, prev_s = prev_label.split("_") if "_" in prev_label else (prev_label, "weak")
     curr_a, curr_s = curr_label.split("_") if "_" in curr_label else (curr_label, "weak")
-    # USCITA: una posizione operativa che va a NEUTRAL va comunicata
-    if NOTIFY_EXITS and prev_a in ("LONG", "SHORT") and curr_a == "NEUTRAL" and _is_operative(prev_s):
+    # USCITA: una posizione che era operativa e va a NEUTRAL va comunicata
+    if NOTIFY_EXITS and prev_a in ("LONG", "SHORT") and curr_a == "NEUTRAL" \
+            and _is_operative(prev_s, prev_conf_pct):
         return True
     if prev_a == "NEUTRAL" and curr_a in ("LONG", "SHORT"):
-        return _is_operative(curr_s)
+        return _is_operative(curr_s, conf_pct)
     if (prev_a == "LONG" and curr_a == "SHORT") or (prev_a == "SHORT" and curr_a == "LONG"):
-        return _is_operative(curr_s)
+        return _is_operative(curr_s, conf_pct)
     if prev_a == curr_a and prev_a in ("LONG", "SHORT"):
         if _STRENGTHS.get(curr_s, 0) > _STRENGTHS.get(prev_s, 0):
-            return _is_operative(curr_s)
+            return _is_operative(curr_s, conf_pct)
     return False
 
 
@@ -2391,9 +2404,15 @@ def main():
                         action, strength, curr_label = "NEUTRAL", "weak", "NEUTRAL_weak"
                         print(f"  [BREADTH] {asset_id}: SHORT bloccato ({market_breadth:.0f}% in rialzo)", flush=True)
             transition_logged = False
-            is_transition = prev_label and should_notify(prev_label, curr_label)
+            conf_pct_now = round(conf_score / conf_total * 100, 1) if conf_total else None
+            _pc = (prev_entry.get("confluence") or {})
+            prev_conf_pct = (round(_pc["score"] / _pc["total"] * 100, 1)
+                             if _pc.get("total") else None)
+            is_transition = prev_label and should_notify(prev_label, curr_label,
+                                                         conf_pct_now, prev_conf_pct)
             is_new_active = ((not prev_label) and (not is_first_run)
-                             and action in ("LONG", "SHORT") and _is_operative(strength))
+                             and action in ("LONG", "SHORT")
+                             and _is_operative(strength, conf_pct_now))
             # Cambio di stato "generico": qualsiasi variazione di label (include
             # anche uscite a NEUTRAL e indebolimenti, che NON generano alert Telegram).
             label_changed = bool(prev_label) and (prev_label != curr_label)
@@ -2458,7 +2477,8 @@ def main():
             lev = entry_levels(zone, action, data.get("price")) if (ENTRY_ZONE and est) else None
             prev_entry_state = (prev_entry.get("entry") or {}).get("state")
             became_ready = (est == "PRONTO" and prev_entry_state != "PRONTO"
-                            and action in ("LONG", "SHORT") and _is_operative(strength))
+                            and action in ("LONG", "SHORT")
+                            and _is_operative(strength, conf_pct_now))
             if became_ready:
                 print(f"  [PRONTO] {asset_id} {action}: prezzo in zona di valore", flush=True)
 
